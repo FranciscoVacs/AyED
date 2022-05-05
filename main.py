@@ -21,9 +21,9 @@ PROMEDIO_SOJA = 0
 global PROMEDIO_MAIZ
 PROMEDIO_MAIZ = 0
 global PATENTE_MAS_SOJA
-PATENTE_MAS_SOJA = 0
-global PATENTE_MAS_MAIZA
-PATENTE_MAS_MAIZ = 0
+PATENTE_MAS_SOJA = ""
+global PATENTE_MAS_MAIZ
+PATENTE_MAS_MAIZ = ""
 
 
 def menu_principal():
@@ -51,11 +51,15 @@ def menu_administraciones():
     print("\t F- SUCURSALES")
     print("\t G- PRODUCTO POR TITULAR ")
     print("\t V- VOLVER AL MENU PRINCIPAL")
-    select = input("OPCION DESEADA: \n").upper()
-    if select == ("A" or "B" or "C" or "D" or "E" or "F" or "G"):
+    select = input("Seleccione una opcion: ").upper()
+    if select in ("A", "B", "C", "D", "E", "F", "G"):
         menu_de_opciones()
-    if select == "V":
+    elif select == "V":
         menu_principal()
+    else:
+        print("Opcion incorrecta, seleccione otra..")
+        os.system("pause")
+        menu_administraciones()
 
 
 def menu_de_opciones():
@@ -66,13 +70,18 @@ def menu_de_opciones():
     print("\t C- CONSULTA")
     print("\t M- MODIFICACION")
     print("\t V- VOLVER AL MENU ANTERIOR")
-    seleccionarda = input("OPCION DESEADA: \n").upper()
-    if seleccionarda == ("A" or "B" or "C" or "M"):
-        print("\t Esta funcionalidad esta en construccion\n")
+    selec = input("Seleccione una opcion: ").upper()
+    # if selec == "A" or selec == "B" or selec == "C" or selec == "M":
+    if selec in ("A", "B", "C", "M"):
+        print("Esta funcionalidad esta en construccion\n")
         os.system("pause")
         menu_de_opciones()
-    if seleccionarda == "V":
+    elif selec == "V":
         menu_administraciones()
+    else:
+        print("Opcion incorrecta, seleccione otra..")
+        os.system("pause")
+        menu_de_opciones()
 
 
 def menu_recepcion():
@@ -84,12 +93,12 @@ def menu_recepcion():
     global PESO_MAIZ
     global PATENTE_MAS_MAIZ
 
-    os.system("cls")
     otro_Camion = "S"
 
     while otro_Camion != "N":
+        os.system("cls")
         print("SE HA RECIBIDO UN CAMION")
-        patente = int(input("\t NUMERO DE PATENTE: "))
+        patente = input("\t NUMERO DE PATENTE: ")
         CAMIONES = CAMIONES + 1
 
         print("OPCIONES DE CARGAMENTO:")
@@ -114,7 +123,7 @@ def menu_recepcion():
 
         print("EL PESO NETO DEL CAMION " + str(CAMIONES) + " ES: ", neto_temp)
 
-        otro_Camion = input("¿DESEA AGREGAR OTRO CAMION? (S/N)")
+        otro_Camion = input("¿Desea agregar otro camion? (S/N)").upper()
 
 
 # programa main
@@ -123,19 +132,19 @@ seleccion = -1
 while seleccion != 0:
 
     menu_principal()
-    seleccion = int(input("SELECCIONAR OPCION: \n"))
+    seleccion = int(input("Seleccione una opcion: "))
 
     if seleccion == 1:
         menu_administraciones()
 
-    if seleccion == (2 or 4 or 5 or 6 or 7):
-        print("\t Esta funcionalidad esta en construccion\n")
+    elif seleccion in (2, 4, 5, 6, 7):
+        print("Esta funcionalidad esta en construccion\n")
         os.system("pause")
 
-    if seleccion == 3:
+    elif seleccion == 3:
         menu_recepcion()
 
-    if seleccion == 8:
+    elif seleccion == 8:
         os.system("cls")
         print("\nLA CANTIDAD TOTAL DE CAMIONES ES: ")
         print(CAMIONES)
@@ -157,5 +166,10 @@ while seleccion != 0:
         print(PATENTE_MAS_MAIZ)
         os.system("pause")
 
-    if seleccion == 0:
+    elif seleccion == 0:
         print("FIN DEL PROGRAMA")
+
+    else:
+        print("Opcion incorrecta, seleccione otra..")
+        os.system("pause")
+        menu_principal()
