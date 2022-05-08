@@ -4,8 +4,6 @@
 # Vacs, Francisco 107
 
 import os
-from select import select
-from time import process_time_ns
 
 global CAMIONES
 CAMIONES = 0
@@ -189,26 +187,26 @@ def reportes():
 
 # programa main
 
-seleccion = -1
-while seleccion != 0:
+seleccion = "-"
+while seleccion != "0":
 
     menu_principal()
-    seleccion = int(input("Seleccione una opcion: "))
+    seleccion = input("Seleccione una opcion: ")
 
-    if seleccion == 1:
+    if seleccion == "1":
         menu_administraciones()
 
-    elif seleccion in (2, 4, 5, 6, 7):
+    elif seleccion in ("2", "4", "5", "6", "7"):
         print("Esta funcionalidad esta en construccion\n")
         os.system("pause")
 
-    elif seleccion == 3:
+    elif seleccion == "3":
         menu_recepcion()
 
-    elif seleccion == 8:
+    elif seleccion == "8":
         reportes()
 
-    elif seleccion == 0:
+    elif seleccion == "0":
         print("FIN DEL PROGRAMA")
 
     else:
