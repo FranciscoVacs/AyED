@@ -1,0 +1,188 @@
+# Bonaroti, Francisco 111
+# Cosenza, Teo 107
+# Gilardoni, Lucio 107
+# Vacs, Francisco 107
+
+# en un ppio anda, falta bastante testeo + arreglar el chapin donde aplique
+
+import os
+
+
+def menu_principal():
+    os.system("cls")
+    print("MENU PRINCIPAL:")
+    print("\t 1 - ADMINISTRACIONES")
+    print("\t 2 - ENTREGA DE CUPOS")
+    print("\t 3 - RECEPCION")
+    print("\t 4 - REGISTRAR CALIDAD")
+    print("\t 5 - REGISTRAR PESO BRUTO")
+    print("\t 6 - REGISTRAR DESCARGA")
+    print("\t 7 - REGISTRAR CARGA")
+    print("\t 8 - REPORTES")
+    print("\t 0 - FIN DEL PROGRAMA")
+
+
+def menu_administraciones(cargados):
+    seleccion = ""
+    while seleccion != "V":
+        while seleccion not in ("A", "B", "C", "D", "E", "F", "G", "V"):
+            os.system("cls")
+            print("ADMINISTRACIONES")
+            print("\t A- TITULARES")
+            print("\t B- PRODUCTOS")
+            print("\t C- RUBROS")
+            print("\t D- RUBROS x PRODUCTO")
+            print("\t E- SILOS")
+            print("\t F- SUCURSALES")
+            print("\t G- PRODUCTO POR TITULAR ")
+            print("\t V- VOLVER AL MENU PRINCIPAL")
+            seleccion = input("Seleccione una opcion: ").upper()
+            if seleccion not in ("A", "B", "C", "D", "E", "F", "G", "V"):
+                print("No existe la opcion\n")
+                os.system("pause")
+                seleccion = ""
+        menu_opciones(seleccion, cargados)
+        seleccion = ""
+
+
+def menu_opciones(x, cargados):
+    seleccion = ""
+    while seleccion != "V":
+        while seleccion not in ("A", "B", "C", "M", "V"):
+            os.system("cls")
+            print("OPCIONES")
+            print("\t A - ALTA")
+            print("\t B - BAJA")
+            print("\t C - CONSULTA")
+            print("\t M - MODIFICACION")
+            print("\t V - VOLVER")
+            seleccion = input("Seleccione una opcion: ").upper()
+            if seleccion not in ("A", "B", "C", "M", "V"):
+                print("No existe la opcion\n")
+                os.system("pause")
+            if seleccion != "V":
+                if x == "B":
+                    edicion(seleccion, cargados)
+                else:
+                    print("Esta funcionalidad esta en construccion\n")
+                    os.system("pause")
+                seleccion = ""
+
+
+def edicion(x, cargados):
+    productos = ["SOJA", "TRIGO", "MAIZ", "GIRASOL", "CEBADA"]
+    prod_elegido = ""
+    not_repe = 1
+    match x:
+
+        case "A":
+            while prod_elegido not in productos:
+                os.system("cls")
+                print("PRODUCTOS")
+                print(productos)
+                prod_elegido = input("Producto a cargar: ").upper()
+                if prod_elegido not in productos:
+                    print("El producto ingresado no existe")
+                    os.system("pause")
+            i = 0
+            while i < 3 and cargados[i] != prod_elegido:
+                i += 1
+            if i < 3:
+                print("El producto ya está cargado")
+                os.system("pause")
+                not_repe = 0
+            i = 0
+            while i < 3 and cargados[i] != " ":
+                i += 1
+            if i < 3 and not_repe:
+                cargados[i] = prod_elegido
+            else:
+                print("Los tres estan llenos, borra o modifica uno")
+                os.system("pause")
+
+        case "B":
+            if cargados[0] == " " and cargados[1] == " " and cargados[2] == " ":
+                os.system("cls")
+                print("Todavia no se cargo ningun producto")
+                os.system("pause")
+            else:
+                while prod_elegido not in productos:
+                    os.system("cls")
+                    print(cargados)
+                    prod_elegido = input("Ingrese el producto a eliminar: ").upper()
+                    if prod_elegido not in cargados:
+                        print("Lo ingresado no es un producto cargado")
+                        os.system("pause")
+                i = 0
+                while prod_elegido != cargados[i]:
+                    i += 1
+                cargados[i] = " "
+
+        case "C":
+            if cargados[0] == " " and cargados[1] == " " and cargados[2] == " ":
+                os.system("cls")
+                print("Todavia no se cargo ningun producto")
+                os.system("pause")
+            else:
+                os.system("cls")
+                print(cargados)
+                os.system("pause")
+
+        case "M":
+            if cargados[0] == " " and cargados[1] == " " and cargados[2] == " ":
+                os.system("cls")
+                print("Todavia no se cargo ningun producto")
+                os.system("pause")
+            else:
+                prod_sacar = ""
+                prod_nuevo = ""
+                while prod_sacar not in cargados:
+                    os.system("cls")
+                    print(cargados)
+                    prod_sacar = input("Ingrese el producto a modificar: ").upper()
+                    if prod_sacar not in cargados:
+                        print("El producto ingresado no esta cargado")
+                        os.system("pause")
+                while prod_nuevo not in productos or prod_nuevo in cargados:
+                    os.system("cls")
+                    print(productos)
+                    prod_nuevo = input("Ingrese el nuevo producto: ").upper()
+                    if prod_nuevo not in productos and prod_nuevo in cargados:
+                        print("El producto ingresado no corresponde")
+                i = 0
+                while prod_sacar != cargados[i]:
+                    i += 1
+                cargados[i] = prod_nuevo
+
+
+# programa main
+
+cargados = [" "] * 3
+
+seleccion = "-"
+while seleccion != "0":
+    menu_principal()
+    seleccion = input("Seleccione una opcion: ")
+
+    if seleccion == "1":
+        menu_administraciones(cargados)
+
+    # elif seleccion == "2":
+    # entrega_cupos()
+
+    elif seleccion in ("4", "6"):
+        print("Esta funcionalidad esta en construccion\n")
+        os.system("pause")
+
+    # elif seleccion == "3":
+    # menu_recepcion()
+
+    # elif seleccion == "8":
+    # reportes()
+
+    elif seleccion == "0":
+        print("FIN DEL PROGRAMA")
+
+    else:
+        print("Opcion incorrecta, seleccione otra")
+        os.system("pause")
