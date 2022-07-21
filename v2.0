@@ -1,4 +1,4 @@
-# Bonaroti, Francisco 111
+5# Bonaroti, Francisco 111
 # Cosenza, Teo 107
 # Gilardoni, Lucio 107
 # Vacs, Francisco 107
@@ -41,8 +41,9 @@ def menu_administraciones(cargados):
                 print("No existe la opcion\n")
                 os.system("pause")
                 seleccion = ""
-        menu_opciones(seleccion, cargados)
-        seleccion = ""
+        if seleccion != "V":
+            menu_opciones(seleccion, cargados)
+            seleccion = ""
 
 
 def menu_opciones(x, cargados):
@@ -76,29 +77,30 @@ def edicion(x, cargados):
     match x:
 
         case "A":
-            while prod_elegido not in productos:
-                os.system("cls")
-                print("PRODUCTOS")
-                print(productos)
-                prod_elegido = input("Producto a cargar: ").upper()
-                if prod_elegido not in productos:
-                    print("El producto ingresado no existe")
-                    os.system("pause")
-            i = 0
-            while i < 3 and cargados[i] != prod_elegido:
-                i += 1
-            if i < 3:
-                print("El producto ya está cargado")
-                os.system("pause")
-                not_repe = 0
-            i = 0
-            while i < 3 and cargados[i] != " ":
-                i += 1
-            if i < 3 and not_repe:
-                cargados[i] = prod_elegido
-            else:
+            if " " not in cargados:
                 print("Los tres estan llenos, borra o modifica uno")
                 os.system("pause")
+            else:
+                while prod_elegido not in productos:
+                    os.system("cls")
+                    print("PRODUCTOS")
+                    print(productos)
+                    prod_elegido = input("Producto a cargar: ").upper()
+                    if prod_elegido not in productos:
+                        print("El producto ingresado no existe")
+                        os.system("pause")
+                i = 0
+                while i < 3 and cargados[i] != prod_elegido:
+                    i += 1
+                if i < 3:
+                    print("El producto ya está cargado")
+                    os.system("pause")
+                    not_repe = 0
+                i = 0
+                while cargados[i] != " ":
+                    i += 1
+                if not_repe:
+                    cargados[i] = prod_elegido
 
         case "B":
             if cargados[0] == " " and cargados[1] == " " and cargados[2] == " ":
@@ -155,9 +157,41 @@ def edicion(x, cargados):
                 cargados[i] = prod_nuevo
 
 
+def entrega_cupos(patentes, estado):
+    os.system("cls")
+    i=0
+    #no esta entrando
+    if patentes[0]!="":
+        while i<8 and patentes[i]!="":
+            i+=1
+        if i<8:
+            libre=i
+            new_patente=input("Ingrese la nueva patente: ")
+            i=0
+            while new_patente!=patentes[i] and patentes[i]!="":
+                i+=1
+            if patentes[i]=="":
+                patentes[libre]=new_patente
+                estado[libre]='P'
+            else:
+                print("Patente ya ingresada")
+                os.system("pause")
+        else:
+            print("No quedan cupos disponibles")
+            os.system("pause")
+    else:
+        new_patente=input("Ingrese la nueva patente: ")
+        patentes[0]=new_patente
+        estado[0]='P'
+    print(patentes)
+    print(estado)
+    os.system("pause")
+
 # programa main
 
 cargados = [" "] * 3
+patentes=[""]*8
+estado=["-"]*8
 
 seleccion = "-"
 while seleccion != "0":
@@ -167,8 +201,8 @@ while seleccion != "0":
     if seleccion == "1":
         menu_administraciones(cargados)
 
-    # elif seleccion == "2":
-    # entrega_cupos()
+    elif seleccion == "2":
+        entrega_cupos(patentes,estado)
 
     elif seleccion in ("4", "6"):
         print("Esta funcionalidad esta en construccion\n")
