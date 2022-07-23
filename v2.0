@@ -5,7 +5,6 @@
 
 # en un ppio anda, falta bastante testeo + arreglar el chapin donde aplique
 
-from asyncio import FastChildWatcher
 import os
 
 
