@@ -171,7 +171,7 @@ def edicion(x, cargados): #x:char; cargados:array[2] de string[6]
                     cargados[i] = prod_nuevo
 
 
-def entrega_cupos(camiones, estado, cargados):
+def entrega_cupos(camiones, estado, cargados): #camiones: array[7][1] de string[6]; estado: array[7] de char; cargados: array[2] de string[6]
     os.system("cls")
     if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
         print("Todavia no se cargo ningun producto, cargue uno y vuelva")
@@ -231,7 +231,7 @@ def entrega_cupos(camiones, estado, cargados):
         return 0
 
 
-def menu_recepcion(camiones, estado): #camiones: array[1] de string[6]; estado:char
+def menu_recepcion(camiones, estado): #camiones: array[7][1] de string[6]; estado:char
     os.system("cls")
     new_patente = "" #string[6]
     while new_patente!="*":
@@ -255,7 +255,7 @@ def menu_recepcion(camiones, estado): #camiones: array[1] de string[6]; estado:c
             new_patente = ""
 
 
-def registro_pb(camiones, estado, pesos): #camiones: array[1] de string[6]; estado:char; pesos: array[2] de int
+def registro_pb(camiones, estado, pesos): #camiones: array[7][1] de string[6]; estado:array[7] de char; pesos: array[2] de int
     os.system("cls")
     if camiones[0][0] != "":
         patente = "" #string[6]
@@ -281,7 +281,7 @@ def registro_pb(camiones, estado, pesos): #camiones: array[1] de string[6]; esta
         os.system("pause")
 
 
-def registro_tara(camiones, estado, pesos): #camiones: array[1] de string[6]; estado:char; pesos: array[2] de int
+def registro_tara(camiones, estado, pesos): #camiones: array[7][1] de string[6]; estado:array[7] dechar; pesos: array[2] de int
     os.system("cls")
     if camiones[0][0] != "":
         patente = "" #string[6]
@@ -310,14 +310,14 @@ def registro_tara(camiones, estado, pesos): #camiones: array[1] de string[6]; es
                 print("Previamente se debe registrar el peso bruto")
                 os.system("pause")
         else:
-            print("La tara de este camion ya fue registrado")
+            print("La tara de este camion ya fue registrada")
             os.system("pause")
     else:
         print("Todavia no se asigno ningun cupo")
         os.system("pause")
 
 
-def reportes(cupos, estado, camiones, pesos, cargados):#cupos: int; estado:char; camiones:array[1] de string[6]; pesos: array[2] de int; cargados: array[2] de string[6]
+def reportes(cupos, estado, camiones, pesos, cargados):#cupos: int; estado:array[7] de char; camiones:array[7][1] de string[6]; pesos: array[2] de int; cargados: array[2] de string[6]
     os.system("cls")
     print("Se entregaron " + str(cupos) + " cupos")
     i = 0 #int
@@ -328,15 +328,11 @@ def reportes(cupos, estado, camiones, pesos, cargados):#cupos: int; estado:char;
     while i < 8:
         if estado[i] == 'E' or estado[i] == 'C':
             recibidos += 1
-        if camiones[i][0] != "" and camiones[i][1] == cargados[0]:
-            camiones_prod[0] += 1
-            pesos_netos[0] += pesos[i][2]
-        if camiones[i][0] != "" and camiones[i][1] == cargados[1]:
-            camiones_prod[1] += 1
-            pesos_netos[1] += pesos[i][2]
-        if camiones[i][0] != "" and camiones[i][1] == cargados[2]:
-            camiones_prod[2] += 1
-            pesos_netos[2] += pesos[i][2]
+        if camiones[i][0] !="":
+            for j in range(2):
+                if camiones[i][1]== cargados[j]:
+                    camiones_prod[j] += 1
+                    pesos_netos[j] += pesos[i][2]
         i += 1
 
     print("Se recibieron " + str(recibidos) + " camiones")
