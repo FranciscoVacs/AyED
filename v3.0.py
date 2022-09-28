@@ -174,8 +174,6 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
                     cargados[i] = prod_nuevo
 
 
-# hasta acá cambiá la busq
-
 def entrega_cupos(camiones, estado,
                   cargados):  # camiones: array[7][1] de string[6]; estado: array[7] de char; cargados: array[2] de string[6]
     os.system("cls")
@@ -204,12 +202,12 @@ def entrega_cupos(camiones, estado,
                     i = 0
                     producto = ""  # string
                     productos = ["SOJA", "TRIGO", "MAIZ", "GIRASOL", "CEBADA"]  # array[5] de string[7]
-                    while producto not in productos:
+                    while busq_Sec_1D(productos, producto, 0) == -1:
                         producto = input("Ingrese el producto transportado: ")
-                        if producto not in productos:
+                        if busq_Sec_1D(productos, producto, 0) == -1:
                             print("Producto no reconocido")
                             os.system("pause")
-                    if producto not in cargados:
+                    if busq_Sec_1D(cargados, producto, 0) == -1:
                         print("Producto no cargado, cargue y vuelva")
                         os.system("pause")
                     else:
@@ -430,7 +428,7 @@ while seleccion != "0":
     elif seleccion == "2":
         cupos = entrega_cupos(camiones, estado, cargados[:])
 
-    elif seleccion in ("4", "6"):
+    elif seleccion == "4" or seleccion == "6":
         print("Esta funcionalidad esta en construccion\n")
         os.system("pause")
 
