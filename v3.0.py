@@ -195,6 +195,7 @@ def entrega_cupos(camiones, estado,
                     if len(new_patente) < 6 or len(new_patente) > 7:
                         print("Patente no aceptada")
                         os.system("pause")
+                    new_patente = new_patente.upper()
                 i = 0
                 while new_patente != camiones[i][0] and camiones[i][0] != "":  # chequea q no repita hasta la 1ra vacia
                     i += 1
@@ -203,7 +204,7 @@ def entrega_cupos(camiones, estado,
                     producto = ""  # string
                     productos = ["SOJA", "TRIGO", "MAIZ", "GIRASOL", "CEBADA"]  # array[5] de string[7]
                     while busq_Sec_1D(productos, producto) == -1:
-                        producto = input("Ingrese el producto transportado: ")
+                        producto = input("Ingrese el producto transportado: ").upper()
                         if busq_Sec_1D(productos, producto) == -1:
                             print("Producto no reconocido")
                             os.system("pause")
@@ -240,7 +241,7 @@ def menu_recepcion(camiones, estado):  # camiones: array[7][1] de string[6]; est
     new_patente = ""  # string[6]
     while new_patente != "*":
         while (len(new_patente) < 6 or len(new_patente) > 7) and new_patente != "*":
-            new_patente = input("Ingrese la nueva patente (* para finalizar): ")
+            new_patente = input("Ingrese la nueva patente (* para finalizar): ").upper()
             if (len(new_patente) < 6 or len(new_patente) > 7) and new_patente != "*":
                 print("Patente no aceptada")
                 os.system("pause")
@@ -265,7 +266,7 @@ def registro_pb(camiones, estado,
     if camiones[0][0] != "":
         patente = ""  # string[6]
         while len(patente) < 6 or len(patente) > 7:
-            patente = input("Ingrese la patente del camion: ")
+            patente = input("Ingrese la patente del camion: ").upper()
             if len(patente) < 6 or len(patente) > 7:
                 print("Patente no aceptada")
                 os.system("pause")
@@ -292,7 +293,7 @@ def registro_tara(camiones, estado,
     if camiones[0][0] != "":
         patente = ""  # string[6]
         while len(patente) < 6 or len(patente) > 7:
-            patente = input("Ingrese la patente del camion: ")
+            patente = input("Ingrese la patente del camion: ").upper()
             if len(patente) < 6 or len(patente) > 7:
                 print("Patente no aceptada")
                 os.system("pause")
