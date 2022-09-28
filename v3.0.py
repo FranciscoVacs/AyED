@@ -24,7 +24,7 @@ def menu_administraciones(cargados):  # cargados:array[2] de string[6]
     seleccion = ""  # char
     posibles = ["A", "B", "C", "D", "E", "F", "G", "V"]
     while seleccion != "V":
-        while busq_Sec_1D(posibles[:], seleccion, 0) == -1:
+        while busq_Sec_1D(posibles[:], seleccion) == -1:
             os.system("cls")
             print("ADMINISTRACIONES")
             print("\t A- TITULARES")
@@ -36,7 +36,7 @@ def menu_administraciones(cargados):  # cargados:array[2] de string[6]
             print("\t G- PRODUCTO POR TITULAR ")
             print("\t V- VOLVER AL MENU PRINCIPAL")
             seleccion = input("Seleccione una opcion: ").upper()
-            if busq_Sec_1D(posibles[:], seleccion, 0) == -1:
+            if busq_Sec_1D(posibles[:], seleccion) == -1:
                 print("No existe la opcion\n")
                 os.system("pause")
                 seleccion = ""
@@ -49,7 +49,7 @@ def menu_opciones(x, cargados):  # x:char; cargados:array[2] de string[6]
     seleccion = ""  # char
     posibles = ["A", "B", "C", "M", "V"]
     while seleccion != "V":
-        while busq_Sec_1D(posibles[:], seleccion, 0) == -1:
+        while busq_Sec_1D(posibles[:], seleccion) == -1:
             os.system("cls")
             print("OPCIONES")
             print("\t A - ALTA")
@@ -58,7 +58,7 @@ def menu_opciones(x, cargados):  # x:char; cargados:array[2] de string[6]
             print("\t M - MODIFICACION")
             print("\t V - VOLVER")
             seleccion = input("Seleccione una opcion: ").upper()
-            if busq_Sec_1D(posibles[:], seleccion, 0) == -1:
+            if busq_Sec_1D(posibles[:], seleccion) == -1:
                 print("No existe la opcion\n")
                 os.system("pause")
             elif seleccion != "V":
@@ -78,16 +78,16 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
     match x:
 
         case "A":
-            if busq_Sec_1D(cargados, "", 0) == -1:
+            if busq_Sec_1D(cargados, "") == -1:
                 print("Los tres estan llenos, borra o modifica uno")
                 os.system("pause")
             else:
-                while busq_Sec_1D(productos, prod_elegido, 0) == -1:
+                while busq_Sec_1D(productos, prod_elegido) == -1:
                     os.system("cls")
                     print("PRODUCTOS")
                     print(productos)
                     prod_elegido = input("Producto a cargar: ").upper()
-                    if busq_Sec_1D(productos, prod_elegido, 0) == -1:
+                    if busq_Sec_1D(productos, prod_elegido) == -1:
                         print("El producto ingresado no existe")
                         os.system("pause")
                 i = 0  # int
@@ -109,7 +109,7 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
                 print("Todavia no se cargo ningun producto")
                 os.system("pause")
             else:
-                while busq_Sec_1D(productos, prod_elegido, 0) == -1:
+                while busq_Sec_1D(productos, prod_elegido) == -1:
                     os.system("cls")
                     print(cargados)
                     prod_elegido = input("Ingrese el producto a eliminar: ").upper()
@@ -147,11 +147,11 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
             else:
                 prod_sacar = " "  # string[6]
                 prod_nuevo = " "  # string[6]
-                while busq_Sec_1D(cargados, prod_sacar, 0) == -1:
+                while busq_Sec_1D(cargados, prod_sacar) == -1:
                     os.system("cls")
                     print(cargados)
                     prod_sacar = input("Ingrese el producto a modificar: ").upper()
-                    if busq_Sec_1D(cargados, prod_sacar, 0) == -1:
+                    if busq_Sec_1D(cargados, prod_sacar) == -1:
                         print("El producto ingresado no esta cargado")
                         os.system("pause")
                 i = 0  # int
@@ -162,11 +162,11 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
                     print("No se puede modificar porque el producto esta en uso")
                     os.system("pause")
                 if usado == False:
-                    while busq_Sec_1D(productos, prod_nuevo, 0) == -1 or busq_Sec_1D(cargados, prod_nuevo, 0) != -1:
+                    while busq_Sec_1D(productos, prod_nuevo) == -1 or busq_Sec_1D(cargados, prod_nuevo) != -1:
                         os.system("cls")
                         print(productos)
                         prod_nuevo = input("Ingrese el nuevo producto: ").upper()
-                        if busq_Sec_1D(productos, prod_nuevo, 0) == -1 and busq_Sec_1D(cargados, prod_nuevo, 0) != -1:
+                        if busq_Sec_1D(productos, prod_nuevo) == -1 and busq_Sec_1D(cargados, prod_nuevo) != -1:
                             print("El producto ingresado no corresponde")
                     i = 0
                     while prod_sacar != cargados[i]:
@@ -202,12 +202,12 @@ def entrega_cupos(camiones, estado,
                     i = 0
                     producto = ""  # string
                     productos = ["SOJA", "TRIGO", "MAIZ", "GIRASOL", "CEBADA"]  # array[5] de string[7]
-                    while busq_Sec_1D(productos, producto, 0) == -1:
+                    while busq_Sec_1D(productos, producto) == -1:
                         producto = input("Ingrese el producto transportado: ")
-                        if busq_Sec_1D(productos, producto, 0) == -1:
+                        if busq_Sec_1D(productos, producto) == -1:
                             print("Producto no reconocido")
                             os.system("pause")
-                    if busq_Sec_1D(cargados, producto, 0) == -1:
+                    if busq_Sec_1D(cargados, producto) == -1:
                         print("Producto no cargado, cargue y vuelva")
                         os.system("pause")
                     else:
@@ -391,12 +391,9 @@ def reportes(cupos, estado, camiones, pesos,
     os.system("pause")
 
 
-def busq_Sec_1D(array, busq, max):
+def busq_Sec_1D(array, busq):
     i = 0
-    if max == 0:
-        N = len(array)
-    else:
-        N = max
+    N = len(array)
     while i < N and array[i] != busq:
         i += 1
     if i == N:
