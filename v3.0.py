@@ -3,6 +3,7 @@
 # Gilardoni, Lucio 107
 # Vacs, Francisco 107
 
+from mimetypes import init
 import os
 
 
@@ -17,6 +18,7 @@ def menu_principal():
     print("\t 6 - REGISTRAR DESCARGA")
     print("\t 7 - REGISTRAR TARA")
     print("\t 8 - REPORTES")
+    print("\t 9 - LISTADO DE SILOS Y RECHAZOS")
     print("\t 0 - FIN DEL PROGRAMA")
 
 
@@ -78,16 +80,16 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
     match x:
 
         case "A":
-            if busq_Sec_1D(cargados, "") == -1:
+            if busq_Sec_1D(cargados[:], "") == -1:
                 print("Los tres estan llenos, borra o modifica uno")
                 os.system("pause")
             else:
-                while busq_Sec_1D(productos, prod_elegido) == -1:
+                while busq_Sec_1D(productos[:], prod_elegido) == -1:
                     os.system("cls")
                     print("PRODUCTOS")
                     print(productos)
                     prod_elegido = input("Producto a cargar: ").upper()
-                    if busq_Sec_1D(productos, prod_elegido) == -1:
+                    if busq_Sec_1D(productos[:], prod_elegido) == -1:
                         print("El producto ingresado no existe")
                         os.system("pause")
                 i = 0  # int
@@ -109,7 +111,7 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
                 print("Todavia no se cargo ningun producto")
                 os.system("pause")
             else:
-                while busq_Sec_1D(productos, prod_elegido) == -1:
+                while busq_Sec_1D(productos[:], prod_elegido) == -1:
                     os.system("cls")
                     print(cargados)
                     prod_elegido = input("Ingrese el producto a eliminar: ").upper()
@@ -147,11 +149,11 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
             else:
                 prod_sacar = " "  # string[6]
                 prod_nuevo = " "  # string[6]
-                while busq_Sec_1D(cargados, prod_sacar) == -1:
+                while busq_Sec_1D(cargados[:], prod_sacar) == -1:
                     os.system("cls")
                     print(cargados)
                     prod_sacar = input("Ingrese el producto a modificar: ").upper()
-                    if busq_Sec_1D(cargados, prod_sacar) == -1:
+                    if busq_Sec_1D(cargados[:], prod_sacar) == -1:
                         print("El producto ingresado no esta cargado")
                         os.system("pause")
                 i = 0  # int
@@ -162,11 +164,11 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
                     print("No se puede modificar porque el producto esta en uso")
                     os.system("pause")
                 if usado == False:
-                    while busq_Sec_1D(productos, prod_nuevo) == -1 or busq_Sec_1D(cargados, prod_nuevo) != -1:
+                    while busq_Sec_1D(productos[:], prod_nuevo) == -1 or busq_Sec_1D(cargados[:], prod_nuevo) != -1:
                         os.system("cls")
                         print(productos)
                         prod_nuevo = input("Ingrese el nuevo producto: ").upper()
-                        if busq_Sec_1D(productos, prod_nuevo) == -1 and busq_Sec_1D(cargados, prod_nuevo) != -1:
+                        if busq_Sec_1D(productos[:], prod_nuevo) == -1 and busq_Sec_1D(cargados[:], prod_nuevo) != -1:
                             print("El producto ingresado no corresponde")
                     i = 0
                     while prod_sacar != cargados[i]:
@@ -203,12 +205,12 @@ def entrega_cupos(camiones, estado,
                     i = 0
                     producto = ""  # string
                     productos = ["SOJA", "TRIGO", "MAIZ", "GIRASOL", "CEBADA"]  # array[5] de string[7]
-                    while busq_Sec_1D(productos, producto) == -1:
+                    while busq_Sec_1D(productos[:], producto) == -1:
                         producto = input("Ingrese el producto transportado: ").upper()
-                        if busq_Sec_1D(productos, producto) == -1:
+                        if busq_Sec_1D(productos[:], producto) == -1:
                             print("Producto no reconocido")
                             os.system("pause")
-                    if busq_Sec_1D(cargados, producto) == -1:
+                    if busq_Sec_1D(cargados[:], producto) == -1:
                         print("Producto no cargado, cargue y vuelva")
                         os.system("pause")
                     else:
@@ -391,8 +393,7 @@ def reportes(cupos, estado, camiones, pesos,
         print(camiones[0][0] + '\t' + camiones[0][1] + '\t' + str(pesos[0][2]))
     os.system("pause")
 
-
-def busq_Sec_1D(array, busq):
+def busq_Sec_1D(array[:], busq):
     i = 0
     N = len(array)
     while i < N and array[i] != busq:
@@ -404,6 +405,54 @@ def busq_Sec_1D(array, busq):
 
 
 # programa main
+
+class operacion:
+    init.def(self):
+        self.patente=""
+        self.cod_prod=0
+        self.fecha_cupo #formato de fecha
+        self.estado=''
+        self.bruto=0
+        self.tara=0
+
+class producto:
+    init.def(self):
+        self.cod_prod=0
+        self.nombre_prod=""
+
+class rubro:
+    init.def(self):
+        self.cod-rubro=0
+        self.nombre=""
+
+class rubro_prod:
+    init.def(self):
+        self.cod_rubro=0
+        self.cod_prod=0
+        self.min_permit=-1.0
+        self.max_permit=100.0
+
+class silos:
+    init.def(self):
+        self.cod_silo=0
+        self.nombre=""
+        self.cod_prod=0
+        self.stock=0
+
+AFRubro_Prods=rubro_prods.dat
+ALRubro_Prods=open(AFRubro_prods,"r+b") #hacer el if
+
+AFSilos=silos.dat
+ALSilos=open(AFSilos,"r+b") #hacer el if
+
+AFRubros=rubros.dat
+ALRubros=open(AFRubros,"r+b") #hacer el if
+
+AFProductos=productos.dat
+ALProductos=open(AFProductos,"r+b") #hacer el if
+
+AFOperaciones=operaciones.dat
+ALOperaciones=open(AFOperaciones,"r+b") #hacer el if
 
 cargados = [""] * 3  # array[2] de string[6]
 camiones = [""] * 8  # array[7][2] de string[6]
