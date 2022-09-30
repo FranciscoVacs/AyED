@@ -7,6 +7,76 @@ from mimetypes import init
 import os
 
 
+class Operacion:
+    def __init__(self):
+        self.patente = ""
+        self.cod_prod = 0
+        # self.fecha_cupo=0
+        self.estado = ''
+        self.bruto = 0
+        self.tara = 0
+
+
+class Producto:
+    def __init__(self):
+        self.cod_prod = 0
+        self.nombre_prod = ""
+
+
+class Rubro:
+    def __init__(self):
+        self.cod_rubro = 0
+        self.nombre = ""
+
+
+class Rubro_prod:
+    def __init__(self):
+        self.cod_rubro = 0
+        self.cod_prod = 0
+        self.min_permit = -1.0
+        self.max_permit = 100.0
+
+
+class Silos:
+    def __init__(self):
+        self.cod_silo = 0
+        self.nombre = ""
+        self.cod_prod = 0
+        self.stock = 0
+
+
+def archivos():
+    AF_RubroProds = "rubro_prods.dat"
+    if not os.path.exists(AF_RubroProds):
+        AL_RubroProds = open(AF_RubroProds, "w+b")
+    else:
+        AL_RubroProds = open(AF_RubroProds, "r+b")
+
+    AF_Silos = "silos.dat"
+    if not os.path.exists(AF_Silos):
+        AL_Silos = open(AF_Silos, "w+b")
+    else:
+        AL_Silos = open(AF_Silos, "r+b")
+
+    AF_Rubros = "rubros.dat"
+    if not os.path.exists(AF_Rubros):
+        AL_Rubros = open(AF_Rubros, "w+b")
+    else:
+        AL_Rubros = open(AF_Rubros, "r+b")
+
+    AF_Productos = "productos.dat"
+    if not os.path.exists(AF_Productos):
+        AL_Productos = open(AF_Productos, "w+b")
+    else:
+        AL_Productos = open(AF_Productos, "r+b")
+
+    AF_Operaciones = "operaciones.dat"
+    if not os.path.exists(AF_Operaciones):
+        AL_Operaciones = open(AF_Operaciones, "w+b")
+    else:
+        AL_Operaciones = open(AF_Operaciones, "r+b")
+
+
 def menu_principal():
     os.system("cls")
     print("MENU PRINCIPAL:")
@@ -192,7 +262,7 @@ def entrega_cupos(camiones, estado,
             if i < 8:  # si hay uno vacio
                 libre = i  # int
                 new_patente = ""  # string
-                while (len(new_patente) < 6 or len(new_patente) > 7):
+                while len(new_patente) < 6 or len(new_patente) > 7:
                     new_patente = input("Ingrese la nueva patente: ")
                     if len(new_patente) < 6 or len(new_patente) > 7:
                         print("Patente no aceptada")
@@ -290,7 +360,7 @@ def registro_pb(camiones, estado,
 
 
 def registro_tara(camiones, estado,
-                  pesos):  # camiones: array[7][1] de string[6]; estado:array[7] dechar; pesos: array[2] de int
+                  pesos):  # camiones: array[7][1] de string[6]; estado:array[7] de char; pesos: array[2] de int
     os.system("cls")
     if camiones[0][0] != "":
         patente = ""  # string[6]
@@ -393,7 +463,8 @@ def reportes(cupos, estado, camiones, pesos,
         print(camiones[0][0] + '\t' + camiones[0][1] + '\t' + str(pesos[0][2]))
     os.system("pause")
 
-def busq_Sec_1D(array[:], busq):
+
+def busq_Sec_1D(array, busq):
     i = 0
     N = len(array)
     while i < N and array[i] != busq:
@@ -406,53 +477,7 @@ def busq_Sec_1D(array[:], busq):
 
 # programa main
 
-class operacion:
-    init.def(self):
-        self.patente=""
-        self.cod_prod=0
-        self.fecha_cupo #formato de fecha
-        self.estado=''
-        self.bruto=0
-        self.tara=0
-
-class producto:
-    init.def(self):
-        self.cod_prod=0
-        self.nombre_prod=""
-
-class rubro:
-    init.def(self):
-        self.cod-rubro=0
-        self.nombre=""
-
-class rubro_prod:
-    init.def(self):
-        self.cod_rubro=0
-        self.cod_prod=0
-        self.min_permit=-1.0
-        self.max_permit=100.0
-
-class silos:
-    init.def(self):
-        self.cod_silo=0
-        self.nombre=""
-        self.cod_prod=0
-        self.stock=0
-
-AFRubro_Prods=rubro_prods.dat
-ALRubro_Prods=open(AFRubro_prods,"r+b") #hacer el if
-
-AFSilos=silos.dat
-ALSilos=open(AFSilos,"r+b") #hacer el if
-
-AFRubros=rubros.dat
-ALRubros=open(AFRubros,"r+b") #hacer el if
-
-AFProductos=productos.dat
-ALProductos=open(AFProductos,"r+b") #hacer el if
-
-AFOperaciones=operaciones.dat
-ALOperaciones=open(AFOperaciones,"r+b") #hacer el if
+archivos()
 
 cargados = [""] * 3  # array[2] de string[6]
 camiones = [""] * 8  # array[7][2] de string[6]
@@ -493,6 +518,12 @@ while seleccion != "0":
 
     elif seleccion == "0":
         print("FIN DEL PROGRAMA")
+        #AL_RubroProds.close()
+        #AL_Silos.close()
+        #AL_Rubros.close()
+        #AL_Productos.close()
+        #AL_Operaciones.close()
+
 
     else:
         print("Opcion incorrecta, seleccione otra")
