@@ -5,6 +5,9 @@
 
 from mimetypes import init
 import os
+import os.path
+import pickle
+import io
 
 
 class Operacion:
@@ -21,6 +24,7 @@ class Producto:
     def __init__(self):
         self.cod_prod = 0
         self.nombre_prod = ""
+        self.cargado = False
 
 
 class Rubro:
@@ -95,8 +99,9 @@ def menu_principal():
 def menu_administraciones(cargados):  # cargados:array[2] de string[6]
     seleccion = ""  # char
     posibles = ["A", "B", "C", "D", "E", "F", "G", "V"]
+    pertenece = -1
     while seleccion != "V":
-        while busq_Sec_1D(posibles[:], seleccion) == -1:
+        while pertenece == -1:
             os.system("cls")
             print("ADMINISTRACIONES")
             print("\t A- TITULARES")
@@ -108,20 +113,23 @@ def menu_administraciones(cargados):  # cargados:array[2] de string[6]
             print("\t G- PRODUCTO POR TITULAR ")
             print("\t V- VOLVER AL MENU PRINCIPAL")
             seleccion = input("Seleccione una opcion: ").upper()
-            if busq_Sec_1D(posibles[:], seleccion) == -1:
+            pertenece = busq_Sec_1D(posibles[:], seleccion)
+            if pertenece == -1:
                 print("No existe la opcion\n")
                 os.system("pause")
                 seleccion = ""
         if seleccion != "V":
             menu_opciones(seleccion, cargados)
             seleccion = ""
+            pertenece = -1
 
 
 def menu_opciones(x, cargados):  # x:char; cargados:array[2] de string[6]
     seleccion = ""  # char
     posibles = ["A", "B", "C", "M", "V"]
+    pertenece = -1
     while seleccion != "V":
-        while busq_Sec_1D(posibles[:], seleccion) == -1:
+        while pertenece == -1:
             os.system("cls")
             print("OPCIONES")
             print("\t A - ALTA")
@@ -130,7 +138,8 @@ def menu_opciones(x, cargados):  # x:char; cargados:array[2] de string[6]
             print("\t M - MODIFICACION")
             print("\t V - VOLVER")
             seleccion = input("Seleccione una opcion: ").upper()
-            if busq_Sec_1D(posibles[:], seleccion) == -1:
+            pertenece = busq_Sec_1D(posibles[:], seleccion)
+            if pertenece == -1:
                 print("No existe la opcion\n")
                 os.system("pause")
             elif seleccion != "V":
@@ -140,110 +149,141 @@ def menu_opciones(x, cargados):  # x:char; cargados:array[2] de string[6]
                     print("Esta funcionalidad esta en construccion\n")
                     os.system("pause")
                 seleccion = ""
+                pertenece = -1
 
 
 def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
     productos = ["SOJA", "TRIGO", "MAIZ", "GIRASOL", "CEBADA"]  # array[4] de string[6]
-    prod_elegido = ""  # string[6]
-    not_repe = 1  # int
-    usado = False  # boolean
+
     match x:
 
         case "A":
-            if busq_Sec_1D(cargados[:], "") == -1:
-                print("Los tres estan llenos, borra o modifica uno")
-                os.system("pause")
-            else:
-                while busq_Sec_1D(productos[:], prod_elegido) == -1:
-                    os.system("cls")
-                    print("PRODUCTOS")
-                    print(productos)
-                    prod_elegido = input("Producto a cargar: ").upper()
-                    if busq_Sec_1D(productos[:], prod_elegido) == -1:
-                        print("El producto ingresado no existe")
-                        os.system("pause")
-                i = 0  # int
-                while i < 3 and cargados[i] != prod_elegido:
-                    i += 1
-                if i < 3:
-                    print("El producto ya está cargado")
-                    os.system("pause")
-                    not_repe = 0
-                i = 0
-                while cargados[i] != "":
-                    i += 1
-                if not_repe:
-                    cargados[i] = prod_elegido
+            alta(cargados, productos[:])
 
         case "B":
-            if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
-                os.system("cls")
-                print("Todavia no se cargo ningun producto")
-                os.system("pause")
-            else:
-                while busq_Sec_1D(productos[:], prod_elegido) == -1:
-                    os.system("cls")
-                    print(cargados)
-                    prod_elegido = input("Ingrese el producto a eliminar: ").upper()
-                    if prod_elegido not in cargados:
-                        print("Lo ingresado no es un producto cargado")
-                        os.system("pause")
-                    i = 0
-                    while i < 8 and prod_elegido != camiones[i][1]:
-                        i += 1
-                    if i < 8:
-                        usado = True
-                        print("No se puede eliminar porque el producto esta en uso")
-                        os.system("pause")
-                i = 0
-                while prod_elegido != cargados[i]:
-                    i += 1
-                if usado == False:
-                    cargados[i] = ""
+            baja(cargados)
 
         case "C":
-            if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
-                os.system("cls")
-                print("Todavia no se cargo ningun producto")
-                os.system("pause")
-            else:
-                os.system("cls")
-                print(cargados)
-                os.system("pause")
+            consulta(cargados[:])
 
         case "M":
-            if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
-                os.system("cls")
-                print("Todavia no se cargo ningun producto")
+            modificacion(cargados, productos[:])
+
+
+def alta(cargados, productos):
+    reg_productos = Producto()
+    if busq_Sec_1D(cargados[:], "") == -1:
+        print("Los tres estan llenos, borra o modifica uno")
+        os.system("pause")
+    else:
+        not_repe = 1  # int
+        prod_elegido = ""  # string[6]
+        pertenece = -1
+        while pertenece == -1:
+            os.system("cls")
+            print("PRODUCTOS")
+            print(productos)
+            prod_elegido = input("Producto a cargar: ").upper()
+            pertenece = busq_Sec_1D(productos[:], prod_elegido)
+            if pertenece == -1:
+                print("El producto ingresado no existe")
                 os.system("pause")
-            else:
-                prod_sacar = " "  # string[6]
-                prod_nuevo = " "  # string[6]
-                while busq_Sec_1D(cargados[:], prod_sacar) == -1:
-                    os.system("cls")
-                    print(cargados)
-                    prod_sacar = input("Ingrese el producto a modificar: ").upper()
-                    if busq_Sec_1D(cargados[:], prod_sacar) == -1:
-                        print("El producto ingresado no esta cargado")
-                        os.system("pause")
-                i = 0  # int
-                while i < 8 and prod_sacar != camiones[i][1]:
-                    i += 1
-                if i < 8:
-                    usado = True
-                    print("No se puede modificar porque el producto esta en uso")
-                    os.system("pause")
-                if usado == False:
-                    while busq_Sec_1D(productos[:], prod_nuevo) == -1 or busq_Sec_1D(cargados[:], prod_nuevo) != -1:
-                        os.system("cls")
-                        print(productos)
-                        prod_nuevo = input("Ingrese el nuevo producto: ").upper()
-                        if busq_Sec_1D(productos[:], prod_nuevo) == -1 and busq_Sec_1D(cargados[:], prod_nuevo) != -1:
-                            print("El producto ingresado no corresponde")
-                    i = 0
-                    while prod_sacar != cargados[i]:
-                        i += 1
-                    cargados[i] = prod_nuevo
+        i = 0  # int
+        while i < 3 and cargados[i] != prod_elegido:
+            i += 1
+        if i < 3:
+            print("El producto ya está cargado")
+            os.system("pause")
+            not_repe = 0
+        i = 0
+        while cargados[i] != "":
+            i += 1
+        if not_repe:
+            cargados[i] = prod_elegido
+
+
+def baja(cargados):
+    if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
+        os.system("cls")
+        print("Todavia no se cargo ningun producto")
+        os.system("pause")
+    else:
+        prod_elegido = ""  # string[6]
+        usado = False  # boolean
+        pertenece = -1
+        while pertenece == -1:
+            os.system("cls")
+            print(cargados)
+            prod_elegido = input("Ingrese el producto a eliminar: ").upper()
+            pertenece = busq_Sec_1D(cargados[:], prod_elegido)
+            if pertenece == -1:
+                print("Lo ingresado no es un producto cargado")
+                os.system("pause")
+            i = 0
+            while i < 8 and prod_elegido != camiones[i][1]:
+                i += 1
+            if i < 8:
+                usado = True
+                print("No se puede eliminar porque el producto esta en uso")
+                os.system("pause")
+        i = 0
+        while prod_elegido != cargados[i]:
+            i += 1
+        if usado == False:
+            cargados[i] = ""
+
+
+def consulta(cargados):
+    if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
+        os.system("cls")
+        print("Todavia no se cargo ningun producto")
+        os.system("pause")
+    else:
+        os.system("cls")
+        print(cargados)
+        os.system("pause")
+
+
+def modificacion(cargados, productos):
+    if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
+        os.system("cls")
+        print("Todavia no se cargo ningun producto")
+        os.system("pause")
+    else:
+        prod_sacar = " "  # string[6]
+        prod_nuevo = " "  # string[6]
+        sacar_existe=-1
+        usado = False  # boolean
+        while sacar_existe== -1:
+            os.system("cls")
+            print(cargados)
+            prod_sacar = input("Ingrese el producto a modificar: ").upper()
+            sacar_existe= busq_Sec_1D(cargados[:], prod_sacar)
+            if sacar_existe == -1:
+                print("El producto ingresado no esta cargado")
+                os.system("pause")
+        i = 0  # int
+        while i < 8 and prod_sacar != camiones[i][1]:
+            i += 1
+        if i < 8:
+            usado = True
+            print("No se puede modificar porque el producto esta en uso")
+            os.system("pause")
+        if usado == False:
+            nuevo_existe = -1
+            nuevo_esta_cargado = -1
+            while nuevo_existe == -1 or nuevo_esta_cargado != -1:
+                os.system("cls")
+                print(productos)
+                prod_nuevo = input("Ingrese el nuevo producto: ").upper()
+                nuevo_existe= busq_Sec_1D(productos[:], prod_nuevo)
+                nuevo_esta_cargado=busq_Sec_1D(cargados[:], prod_nuevo)
+                if nuevo_existe == -1 or nuevo_esta_cargado != -1:
+                    print("El producto ingresado no corresponde")
+            i = 0
+            while prod_sacar != cargados[i]:
+                i += 1
+            cargados[i] = prod_nuevo
 
 
 def entrega_cupos(camiones, estado,
@@ -500,7 +540,7 @@ while seleccion != "0":
     elif seleccion == "2":
         cupos = entrega_cupos(camiones, estado, cargados[:])
 
-    elif seleccion == "4" or seleccion == "6":
+    elif seleccion == "4" or seleccion == "6" or seleccion == "9":
         print("Esta funcionalidad esta en construccion\n")
         os.system("pause")
 
@@ -518,11 +558,11 @@ while seleccion != "0":
 
     elif seleccion == "0":
         print("FIN DEL PROGRAMA")
-        #AL_RubroProds.close()
-        #AL_Silos.close()
-        #AL_Rubros.close()
-        #AL_Productos.close()
-        #AL_Operaciones.close()
+        # AL_RubroProds.close()
+        # AL_Silos.close()
+        # AL_Rubros.close()
+        # AL_Productos.close()
+        # AL_Operaciones.close()
 
 
     else:
