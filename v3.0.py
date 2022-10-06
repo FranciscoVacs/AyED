@@ -175,12 +175,11 @@ def menu_opciones(x, cargados):  # x:char; cargados:array[2] de string[6]
 
 
 def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
-    productos = ["SOJA", "TRIGO", "MAIZ", "GIRASOL", "CEBADA"]  # array[4] de string[6]
 
     match x:
 
         case "A":
-            alta(cargados, productos[:])
+            alta(cargados)
 
         case "B":
             baja(cargados)
@@ -189,21 +188,21 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
             consulta(cargados[:])
 
         case "M":
-            modificacion(cargados, productos[:])
+            modificacion(cargados)
 
 
 def verifInt(x):
     try:
         x = int(x)
-        if x < 0:
+        if x < 1:
             os.system("cls")
-            print("El codigo debe ser positivo")
+            print("El codigo debe ser mayor a 0")
             return False
         else:
             return True
     except:
         os.system("cls")
-        print("El codigo de producto debe ser entero")
+        print("El codigo de producto debe ser un numero entero")
         return False
 
 
@@ -220,39 +219,32 @@ def busqCod(x):
 
 def alta(cargados):
     reg = Producto()
-    prod_elegido = ""  # string[6]
     isInt = False
     repe = True
+
     while not isInt:
         cod = input("Ingrese el código del nuevo producto: ")
         isInt = verifInt(cod)
-        cod = str(cod)
-        cod = cod.ljust(5, " ")
-        cod = int(cod)
+    cod = str(cod)
+    cod = cod.ljust(5, " ")
+    cod = int(cod)
 
     if busqCod(cod) == -1:
         repe = False
 
     if repe == False:
         reg.cod_prod = cod
-        reg.nombre = input("Ingrese el producto a cargar: ")
+        reg.nombre = input("Ingrese el producto a cargar: ").upper()
         reg.nombre = reg.nombre.ljust(8)
         pickle.dump(reg, AL_Prods)
         AL_Prods.flush()
-        size = os.path.getsize(AF_Prods)
-        AL_Prods.seek(0, 0)
-        while AL_Prods.tell() < size:
-            reg = pickle.load(AL_Prods)
-            print(reg.nombre)
-        pickle.dump(reg, AL_Prods)
-        os.system("pause")
     else:
         print("Producto ya ingresado")
         os.system("pause")
 
 
 def baja(cargados):
-    if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
+    if os.path.getsize(AF_Prods) == 0:  # tmb ver si estan todos dados de baja
         os.system("cls")
         print("Todavia no se cargo ningun producto")
         os.system("pause")
@@ -283,13 +275,20 @@ def baja(cargados):
 
 
 def consulta(cargados):
-    if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
+    if os.path.getsize(AF_Prods)==0: #tmb ver si estan todos dados de baja
         os.system("cls")
         print("Todavia no se cargo ningun producto")
         os.system("pause")
     else:
+        reg = Producto()
         os.system("cls")
-        print(cargados)
+        size = os.path.getsize(AF_Prods)
+        AL_Prods.seek(0)
+        while AL_Prods.tell() < size:
+            reg = pickle.load(AL_Prods)
+            print(reg.cod_prod)
+            print(reg.nombre)
+            print(reg.cargado)
         os.system("pause")
 
 
