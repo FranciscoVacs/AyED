@@ -24,7 +24,7 @@ class Producto:
     def __init__(self):
         self.cod_prod = 0
         self.nombre_prod = ""
-        self.cargado = False
+        self.cargado = True
 
 
 class Rubro:
@@ -49,7 +49,29 @@ class Silos:
         self.stock = 0
 
 
+global AL_RubroProds
+global AL_Silos
+global AL_Rubros
+global AL_Prods
+global AL_Ops
+global AF_RubroProds
+global AF_Silos
+global AF_Rubros
+global AF_Prods
+global AF_Ops
+
+
 def archivos():
+    global AL_RubroProds
+    global AL_Silos
+    global AL_Rubros
+    global AL_Prods
+    global AL_Ops
+    global AF_RubroProds
+    global AF_Silos
+    global AF_Rubros
+    global AF_Prods
+    global AF_Ops
     AF_RubroProds = "rubro_prods.dat"
     if not os.path.exists(AF_RubroProds):
         AL_RubroProds = open(AF_RubroProds, "w+b")
@@ -68,17 +90,17 @@ def archivos():
     else:
         AL_Rubros = open(AF_Rubros, "r+b")
 
-    AF_Productos = "productos.dat"
-    if not os.path.exists(AF_Productos):
-        AL_Productos = open(AF_Productos, "w+b")
+    AF_Prods = "productos.dat"
+    if not os.path.exists(AF_Prods):
+        AL_Prods = open(AF_Prods, "w+b")
     else:
-        AL_Productos = open(AF_Productos, "r+b")
+        AL_Prods = open(AF_Prods, "r+b")
 
-    AF_Operaciones = "operaciones.dat"
-    if not os.path.exists(AF_Operaciones):
-        AL_Operaciones = open(AF_Operaciones, "w+b")
+    AF_Ops = "operaciones.dat"
+    if not os.path.exists(AF_Ops):
+        AL_Ops = open(AF_Ops, "w+b")
     else:
-        AL_Operaciones = open(AF_Operaciones, "r+b")
+        AL_Ops = open(AF_Ops, "r+b")
 
 
 def menu_principal():
@@ -170,36 +192,63 @@ def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
             modificacion(cargados, productos[:])
 
 
-def alta(cargados, productos):
-    reg_productos = Producto()
-    if busq_Sec_1D(cargados[:], "") == -1:
-        print("Los tres estan llenos, borra o modifica uno")
+def verifInt(x):
+    try:
+        x = int(x)
+        if x < 0:
+            os.system("cls")
+            print("El codigo debe ser positivo")
+            return False
+        else:
+            return True
+    except:
+        os.system("cls")
+        print("El codigo de producto debe ser entero")
+        return False
+
+
+def busqCod(x):
+    t = os.path.getsize(AF_Prods)
+    AL_Prods.seek(0)
+    while AL_Prods.tell() < t:
+        pos = AL_Prods.tell()
+        aux = pickle.load(AL_Prods)
+        if aux.cod_prod == x:
+            return pos
+    return -1
+
+
+def alta(cargados):
+    reg = Producto()
+    prod_elegido = ""  # string[6]
+    isInt = False
+    repe = True
+    while not isInt:
+        cod = input("Ingrese el código del nuevo producto: ")
+        isInt = verifInt(cod)
+        cod = str(cod)
+        cod = cod.ljust(5, " ")
+        cod = int(cod)
+
+    if busqCod(cod) == -1:
+        repe = False
+
+    if repe == False:
+        reg.cod_prod = cod
+        reg.nombre = input("Ingrese el producto a cargar: ")
+        reg.nombre = reg.nombre.ljust(8)
+        pickle.dump(reg, AL_Prods)
+        AL_Prods.flush()
+        size = os.path.getsize(AF_Prods)
+        AL_Prods.seek(0, 0)
+        while AL_Prods.tell() < size:
+            reg = pickle.load(AL_Prods)
+            print(reg.nombre)
+        pickle.dump(reg, AL_Prods)
         os.system("pause")
     else:
-        not_repe = 1  # int
-        prod_elegido = ""  # string[6]
-        pertenece = -1
-        while pertenece == -1:
-            os.system("cls")
-            print("PRODUCTOS")
-            print(productos)
-            prod_elegido = input("Producto a cargar: ").upper()
-            pertenece = busq_Sec_1D(productos[:], prod_elegido)
-            if pertenece == -1:
-                print("El producto ingresado no existe")
-                os.system("pause")
-        i = 0  # int
-        while i < 3 and cargados[i] != prod_elegido:
-            i += 1
-        if i < 3:
-            print("El producto ya está cargado")
-            os.system("pause")
-            not_repe = 0
-        i = 0
-        while cargados[i] != "":
-            i += 1
-        if not_repe:
-            cargados[i] = prod_elegido
+        print("Producto ya ingresado")
+        os.system("pause")
 
 
 def baja(cargados):
@@ -563,7 +612,6 @@ while seleccion != "0":
         # AL_Rubros.close()
         # AL_Productos.close()
         # AL_Operaciones.close()
-
 
     else:
         print("Opcion incorrecta, seleccione otra")
