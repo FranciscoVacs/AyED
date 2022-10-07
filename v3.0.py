@@ -3,6 +3,7 @@
 # Gilardoni, Lucio 107
 # Vacs, Francisco 107
 
+from math import prod
 from mimetypes import init
 import os
 import os.path
@@ -49,29 +50,19 @@ class Silos:
         self.stock = 0
 
 
-global AL_RubroProds
-global AL_Silos
-global AL_Rubros
-global AL_Prods
-global AL_Ops
-global AF_RubroProds
-global AF_Silos
-global AF_Rubros
-global AF_Prods
-global AF_Ops
+global AL_RubroProds, AF_RubroProds
+global AL_Silos, AF_Silos
+global AL_Rubros,AF_Rubros
+global AL_Prods, AF_Prods
+global AL_Ops, AF_Ops
 
 
 def archivos():
-    global AL_RubroProds
-    global AL_Silos
-    global AL_Rubros
-    global AL_Prods
-    global AL_Ops
-    global AF_RubroProds
-    global AF_Silos
-    global AF_Rubros
-    global AF_Prods
-    global AF_Ops
+    global AL_RubroProds, AF_RubroProds
+    global AL_Silos, AF_Silos
+    global AL_Rubros, AF_Rubros
+    global AL_Prods, AF_Prods
+    global AL_Ops, AF_Ops
     AF_RubroProds = "rubro_prods.dat"
     if not os.path.exists(AF_RubroProds):
         AL_RubroProds = open(AF_RubroProds, "w+b")
@@ -118,7 +109,7 @@ def menu_principal():
     print("\t 0 - FIN DEL PROGRAMA")
 
 
-def menu_administraciones(cargados):  # cargados:array[2] de string[6]
+def menu_administraciones():  # cargados:array[2] de string[6]
     seleccion = ""  # char
     posibles = ["A", "B", "C", "D", "E", "F", "G", "V"]
     pertenece = -1
@@ -141,12 +132,12 @@ def menu_administraciones(cargados):  # cargados:array[2] de string[6]
                 os.system("pause")
                 seleccion = ""
         if seleccion != "V":
-            menu_opciones(seleccion, cargados)
+            menu_opciones(seleccion)
             seleccion = ""
             pertenece = -1
 
 
-def menu_opciones(x, cargados):  # x:char; cargados:array[2] de string[6]
+def menu_opciones(x, ):  # x:char; cargados:array[2] de string[6]
     seleccion = ""  # char
     posibles = ["A", "B", "C", "M", "V"]
     pertenece = -1
@@ -166,7 +157,7 @@ def menu_opciones(x, cargados):  # x:char; cargados:array[2] de string[6]
                 os.system("pause")
             elif seleccion != "V":
                 if x == "B":
-                    edicion(seleccion, cargados)
+                    edicion(seleccion)
                 else:
                     print("Esta funcionalidad esta en construccion\n")
                     os.system("pause")
@@ -174,29 +165,28 @@ def menu_opciones(x, cargados):  # x:char; cargados:array[2] de string[6]
                 pertenece = -1
 
 
-def edicion(x, cargados):  # x:char; cargados:array[2] de string[6]
+def edicion(x):  # x:char; cargados:array[2] de string[6]
 
     match x:
 
         case "A":
-            alta(cargados)
+            alta()
 
         case "B":
-            baja(cargados)
+            baja()
 
         case "C":
-            consulta(cargados[:])
-
+            consulta()
         case "M":
-            modificacion(cargados)
+            modificacion()
 
 
 def verifInt(x):
     try:
         x = int(x)
-        if x < 1:
+        if x < 0:
             os.system("cls")
-            print("El codigo debe ser mayor a 0")
+            print("El codigo no debe ser negativo")
             return False
         else:
             return True
@@ -207,6 +197,7 @@ def verifInt(x):
 
 
 def busqCod(x):
+    global AL_Prods, AF_Prods
     t = os.path.getsize(AF_Prods)
     AL_Prods.seek(0)
     while AL_Prods.tell() < t:
@@ -215,123 +206,157 @@ def busqCod(x):
         if aux.cod_prod == x:
             return pos
     return -1
+    
 
-
-def alta(cargados):
+def alta(): #tmb dar de alta los dados de baja
+    global AL_Prods, AF_Prods
     reg = Producto()
     isInt = False
-    repe = True
+    cod = -1
+    while cod != 0:
+        while not isInt:
+            cod = input("Ingrese el código del nuevo producto (0 para salir): ")
+            isInt = verifInt(cod)
+        cod = int(cod)
+        if cod != 0:
+            pos = busqCod(cod)
+            if pos == -1:
+                reg.cod_prod = cod
+                reg.nombre = input("Ingrese el producto a cargar: ").upper()
+                while len(reg.nombre)>22 and len(reg.nombre)<1:
+                    print("Rta no aceptada, intente nuevamente")
+                    os.system("pause")
+                    os.system("cls")
+                    reg.nombre = input("Ingrese el producto a cargar: ").upper()
+                reg.nombre = reg.nombre.ljust(22)
+                pickle.dump(reg, AL_Prods)
+                AL_Prods.flush()
+            else:
+                AL_Prods.seek(pos)
+                reg=pickle.load(AL_Prods)
+                if reg.cargado:
+                    print("Producto ya ingresado")
+                    os.system("pause")
+                else:
+                    AL_Prods.seek(pos)
+                    reg.cargado = True
+                    pickle.dump(reg, AL_Prods)
+                    AL_Prods.flush()
+                    print("Se volvió a cargar el producto")
+                    os.system("pause")
+            isInt = False
 
-    while not isInt:
-        cod = input("Ingrese el código del nuevo producto: ")
-        isInt = verifInt(cod)
-    cod = str(cod)
-    cod = cod.ljust(5, " ")
-    cod = int(cod)
 
-    if busqCod(cod) == -1:
-        repe = False
-
-    if repe == False:
-        reg.cod_prod = cod
-        reg.nombre = input("Ingrese el producto a cargar: ").upper()
-        reg.nombre = reg.nombre.ljust(8)
-        pickle.dump(reg, AL_Prods)
-        AL_Prods.flush()
+def baja():
+    global AL_Prods, AF_Prods
+    if os.path.getsize(AF_Prods) == 0:  # tmb ver si estan todos dados de baja
+        os.system("cls") 
+        print("Todavia no se cargo ningun producto")
+        os.system("pause")
     else:
-        print("Producto ya ingresado")
+        os.system("cls")
+        reg = Producto()
+        isInt = False
+        cod = -1
+        while cod != 0:
+            while not isInt:
+                cod = input("Ingrese el código del producto a eliminar (0 para salir): ")
+                isInt = verifInt(cod)
+            cod = int(cod)
+            if cod != 0:
+                pos = busqCod(cod)
+                if pos == -1:
+                    print("El codigo ingresado no existe")
+                elif reg.cargado:
+                    AL_Prods.seek(pos)
+                    reg = pickle.load(AL_Prods)
+                    AL_Prods.seek(pos)
+                    reg.cargado = False
+                    pickle.dump(reg, AL_Prods)
+                    AL_Prods.flush()
+                    print("lobajo")
+                    os.system("pause")
+                else:
+                    print("El producto no está cargado")
+                isInt = False
+
+
+def consulta():
+    if os.path.getsize(AF_Prods) == 0:  #tmb ver si estan todos dados de baja
+        os.system("cls")
+        print("Todavía no se cargó ningún producto")
+        os.system("pause")
+    else:
+        reg = Producto()
+        os.system("cls")
+        print("----------------------------")
+        print("| PRODUCTOS:")
+        size = os.path.getsize(AF_Prods)
+        AL_Prods.seek(0,0)
+        while AL_Prods.tell() < size:
+            reg = pickle.load(AL_Prods)
+            if reg.cargado:
+                print("----------------------------")
+                print("| Código: " + '\t' + str(reg.cod_prod))
+                print("| Nombre: " + '\t' + reg.nombre)
+                print("| Estado: " + '\t' + str(reg.cargado))
+        print("----------------------------")
         os.system("pause")
 
 
-def baja(cargados):
+def modificacion():
+    global AL_Prods, AF_Prods
     if os.path.getsize(AF_Prods) == 0:  # tmb ver si estan todos dados de baja
         os.system("cls")
         print("Todavia no se cargo ningun producto")
         os.system("pause")
     else:
-        prod_elegido = ""  # string[6]
-        usado = False  # boolean
-        pertenece = -1
-        while pertenece == -1:
-            os.system("cls")
-            print(cargados)
-            prod_elegido = input("Ingrese el producto a eliminar: ").upper()
-            pertenece = busq_Sec_1D(cargados[:], prod_elegido)
-            if pertenece == -1:
-                print("Lo ingresado no es un producto cargado")
-                os.system("pause")
-            i = 0
-            while i < 8 and prod_elegido != camiones[i][1]:
-                i += 1
-            if i < 8:
-                usado = True
-                print("No se puede eliminar porque el producto esta en uso")
-                os.system("pause")
-        i = 0
-        while prod_elegido != cargados[i]:
-            i += 1
-        if usado == False:
-            cargados[i] = ""
-
-
-def consulta(cargados):
-    if os.path.getsize(AF_Prods)==0: #tmb ver si estan todos dados de baja
-        os.system("cls")
-        print("Todavia no se cargo ningun producto")
-        os.system("pause")
-    else:
-        reg = Producto()
-        os.system("cls")
-        size = os.path.getsize(AF_Prods)
-        AL_Prods.seek(0)
-        while AL_Prods.tell() < size:
-            reg = pickle.load(AL_Prods)
-            print(reg.cod_prod)
-            print(reg.nombre)
-            print(reg.cargado)
-        os.system("pause")
-
-
-def modificacion(cargados, productos):
-    if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
-        os.system("cls")
-        print("Todavia no se cargo ningun producto")
-        os.system("pause")
-    else:
         prod_sacar = " "  # string[6]
-        prod_nuevo = " "  # string[6]
-        sacar_existe=-1
+        sacar_existe = -1
         usado = False  # boolean
-        while sacar_existe== -1:
-            os.system("cls")
-            print(cargados)
-            prod_sacar = input("Ingrese el producto a modificar: ").upper()
-            sacar_existe= busq_Sec_1D(cargados[:], prod_sacar)
-            if sacar_existe == -1:
-                print("El producto ingresado no esta cargado")
-                os.system("pause")
-        i = 0  # int
-        while i < 8 and prod_sacar != camiones[i][1]:
-            i += 1
-        if i < 8:
-            usado = True
-            print("No se puede modificar porque el producto esta en uso")
-            os.system("pause")
-        if usado == False:
-            nuevo_existe = -1
-            nuevo_esta_cargado = -1
-            while nuevo_existe == -1 or nuevo_esta_cargado != -1:
-                os.system("cls")
-                print(productos)
-                prod_nuevo = input("Ingrese el nuevo producto: ").upper()
-                nuevo_existe= busq_Sec_1D(productos[:], prod_nuevo)
-                nuevo_esta_cargado=busq_Sec_1D(cargados[:], prod_nuevo)
-                if nuevo_existe == -1 or nuevo_esta_cargado != -1:
-                    print("El producto ingresado no corresponde")
-            i = 0
-            while prod_sacar != cargados[i]:
-                i += 1
-            cargados[i] = prod_nuevo
+        os.system("cls")
+        isInt = False
+        cod = -1
+        while cod != 0:
+            while not isInt:
+                cod = input("Ingrese el código del producto a modificar (0 para salir): ")
+                isInt = verifInt(cod)
+            cod = int(cod)
+            if cod != 0:
+                pos = busqCod(cod)
+                if pos == -1:
+                    print("El producto no está cargado")
+                    os.system("pause")
+                    os.system("cls")
+                else:
+                    reg = Producto()
+                    AL_Prods.seek(pos)
+                    reg = pickle.load(AL_Prods)
+                    if not reg.cargado:
+                        print("El producto no esta activo")
+                        os.system("pause")
+                    else:
+                        print("Producto a modificar: ")
+                        print("----------------------------")
+                        print("| Código: " + '\t' + str(reg.cod_prod))
+                        print("| Nombre: " + '\t' + reg.nombre)
+                        print("----------------------------")
+                        print("Solo se puede modificar el nombre, de última dalo de baja")
+                        reg.nombre = input("Ingrese el nuevo nombre: ").upper()
+                        while len(reg.nombre) > 22 and len(reg.nombre) < 1:
+                            print("Rta no aceptada, intente nuevamente")
+                            os.system("pause")
+                            os.system("cls")
+                            reg.nombre = input("Ingrese el nuevo nombre: ").upper()
+                        rta = input("Confirma? (Si/No): ").upper()
+                        while rta != "SI" and rta != "NO":
+                            rta = input("SI O NO?: ").upper()
+                        if rta == "SI":
+                            reg.nombre = reg.nombre.ljust(22)
+                            AL_Prods.seek(pos)
+                            pickle.dump(reg, AL_Prods)
+                            AL_Prods.flush()
+                isInt = False
 
 
 def entrega_cupos(camiones, estado,
@@ -583,7 +608,7 @@ while seleccion != "0":
     seleccion = input("Seleccione una opcion: ")
 
     if seleccion == "1":
-        menu_administraciones(cargados)
+        menu_administraciones()
 
     elif seleccion == "2":
         cupos = entrega_cupos(camiones, estado, cargados[:])
