@@ -7,13 +7,15 @@ import os
 import os.path
 import pickle
 import io
+from datetime import datetime
+from datetime import date
 
 
 class Operacion:
     def __init__(self):
         self.patente = ""
         self.cod_prod = 0
-        # self.fecha_cupo=
+        self.fecha_cupo = ""
         self.estado = ''
         self.bruto = 0
         self.tara = 0
@@ -232,7 +234,7 @@ def busqCod(cod, x):
     while AL_Aux.tell() < t:
         pos = AL_Aux.tell()
         aux = pickle.load(AL_Aux)
-        if aux.cod == cod:
+        if int(aux.cod) == cod:
             return pos
     return -1
 
@@ -428,7 +430,7 @@ def verifFloat(x, min, max):
 
 def baja():  # verificar q no se este usando
     global AL_Prods, AF_Prods
-    if os.path.getsize(AF_Prods) == 0 or algunActivo():  # tmb ver si estan todos dados de baja
+    if os.path.getsize(AF_Prods) == 0 or not algunActivo():
         os.system("cls") 
         print("Todavia no se cargo ningun producto")
         os.system("pause")
@@ -446,6 +448,7 @@ def baja():  # verificar q no se este usando
                 pos = busqCod(cod, "B")
                 if pos == -1:
                     print("El codigo ingresado no existe")
+                    os.system("pause")
                 elif reg.cargado:
                     AL_Prods.seek(pos)
                     reg = pickle.load(AL_Prods)
@@ -453,15 +456,14 @@ def baja():  # verificar q no se este usando
                     reg.cargado = False
                     pickle.dump(reg, AL_Prods)
                     AL_Prods.flush()
-                    print("lobajo")
-                    os.system("pause")
                 else:
                     print("El producto no está cargado")
+                    os.system("pause")
                 isInt = False
 
 
 def consulta():
-    if os.path.getsize(AF_Prods) == 0 or algunActivo():  # tmb ver si estan todos dados de baja
+    if os.path.getsize(AF_Prods) == 0 or not algunActivo():
         os.system("cls")
         print("Todavía no se cargó ningún producto")
         os.system("pause")
@@ -484,7 +486,7 @@ def consulta():
 
 def modificacion():
     global AL_Prods, AF_Prods
-    if os.path.getsize(AF_Prods) == 0 or algunActivo():  # tmb ver si estan todos dados de baja
+    if os.path.getsize(AF_Prods) == 0 or not algunActivo():
         os.system("cls")
         print("Todavia no se cargo ningun producto")
         os.system("pause")
@@ -533,28 +535,92 @@ def modificacion():
                 isInt = False
 
 
+def busqCamion(x):
+    global AF_Ops, AL_Ops
+    t = os.path.getsize(AF_Ops)
+    AL_Ops.seek(0)
+    while AL_Ops.tell() < t:
+        pos = AL_Ops.tell()
+        Ops = pickle.load(AL_Ops)
+        if Ops.cod == x:
+            return pos
+    return -1
+
+
 def entrega_cupos(camiones, estado,
                   cargados):  # camiones: array[7][1] de string[6]; estado: array[7] de char; cargados: array[2] de string[6]
     os.system("cls")
-    if cargados[0] == "" and cargados[1] == "" and cargados[2] == "":
+    global AF_Prods, AF_Ops, AL_Ops
+    if os.path.getsize(AF_Prods) == 0 or not algunActivo():
         print("Todavia no se cargo ningun producto, cargue uno y vuelva")
         os.system("pause")
     else:
+
         otro = True  # boolean
         while otro:
             otro = False
-            i = 0
-            while i < 8 and camiones[i][0] != "":  # se fija que haya uno vacio y donde
-                i += 1
+            new_patente = ""  # string
+            while len(new_patente) < 6 or len(new_patente) > 7:
+                new_patente = input("Ingrese la nueva patente: ")
+                if len(new_patente) < 6 or len(new_patente) > 7:
+                    print("Patente no aceptada")
+                    os.system("pause")
+                new_patente = new_patente.upper()
+            ok = False
+            while not ok:
+                esFecha = False
+                while not esFecha:
+                    try:
+                        fechaCupo = input("Ingrese la fecha del turno deseado (dd/mm/aaaa): ")
+                        datetime.strptime(fechaCupo, "%d/%m/%Y")
+                        esFecha = True
+                    except:
+                        print("Fecha invalida")
+                        os.system("pause")
+                f = fechaCupo.split('/')
+                fechaCupo = f[2]+'-'+f[1]+'-'+f[0]
+                if fechaCupo < str(date.today()):  # aaaa-mm-dd
+                    print("El turno no puede ser para un dia anterior al actual")
+                    os.system("pause")
+                else:
+                    ok = True
+                # es para una fecha en particular, el camión puede tener varios registros, iría + abajo
+                """if busqCamion(new_patente) != -1:
+                    print("La patente ya tiene cupo")"""
+            isInt = False
+            while not isInt:
+                cod = input("Ingrese el código del producto: ")
+                isInt = verifInt(cod, 1, 99999)
+                cod = int(cod)
+            pos = busqCod(cod, "B")
+            print(pos)
+            if pos != -1:
+                reg = Operacion()
+                reg.cod_prod = str(cod).ljust(5)
+                reg.patente = new_patente.ljust(7)
+                reg.fecha_cupo = fechaCupo
+                reg.estado = 'P'
+                AL_Ops.seek(0, 2)
+                pickle.dump(reg, AL_Ops)
+                AL_Ops.flush()
+                rta = ""  # char
+                while rta != "S" and rta != "N":
+                    rta = input("Obtener otro cupo? S/N: ").upper()
+                    if rta != "S" and rta != "N":
+                        print("Rta no aceptada")
+                        os.system("pause")
+                if rta == "S":
+                    otro = True
+                else:
+                    return pos+1
+            else:
+                print("No se ingresó un producto válido. Volviendo al menú principal...")
+                os.system("pause")
+                return pos
+            """
             if i < 8:  # si hay uno vacio
                 libre = i  # int
-                new_patente = ""  # string
-                while len(new_patente) < 6 or len(new_patente) > 7:
-                    new_patente = input("Ingrese la nueva patente: ")
-                    if len(new_patente) < 6 or len(new_patente) > 7:
-                        print("Patente no aceptada")
-                        os.system("pause")
-                    new_patente = new_patente.upper()
+                
                 i = 0
                 while new_patente != camiones[i][0] and camiones[i][0] != "":  # chequea q no repita hasta la 1ra vacia
                     i += 1
@@ -593,7 +659,7 @@ def entrega_cupos(camiones, estado,
         return libre + 1
     else:
         return 0
-
+"""
 
 def menu_recepcion(camiones, estado):  # camiones: array[7][1] de string[6]; estado:char
     os.system("cls")
@@ -805,11 +871,11 @@ while seleccion != "0":
 
     elif seleccion == "0":
         print("FIN DEL PROGRAMA")
-        # AL_RubroProds.close()
-        # AL_Silos.close()
-        # AL_Rubros.close()
-        # AL_Productos.close()
-        # AL_Operaciones.close()
+        AL_RubroProds.close()
+        AL_Silos.close()
+        AL_Rubros.close()
+        AL_Prods.close()
+        AL_Ops.close()
 
     else:
         print("Opcion incorrecta, seleccione otra")
