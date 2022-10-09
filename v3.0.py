@@ -389,6 +389,9 @@ def altaSilos():
                                 reg.cod_prod = str(codP).ljust(5)
                                 pickle.dump(reg, AL_Silos)
                                 AL_Silos.flush()
+                                print("Silo cargado")
+                                os.system("pause")
+                                os.system("cls")
                             else:
                                 print(" Ya se ingresó un silo de ese producto")
                                 os.system("pause")
@@ -429,7 +432,6 @@ def altaRxP():
         isInt = False
         codR = int(codR)
         pos = busqCod(codR, "C")
-        print(pos)
         if pos != -1:
             while not isInt:
                 codP = input("Ingrese el código del producto: ")
@@ -677,7 +679,6 @@ def entrega_cupos(cupos):
                                 print("Rta no aceptada")
                                 os.system("pause")
                         if rta == "S":
-                            print("respuesta ese")
                             otro = True
                         else:
                             return pos+1
@@ -1017,7 +1018,8 @@ def reportes():
                 if Ops.cod == prod.cod and (Ops.bruto-Ops.tara)<min:
                     min = Ops.bruto-Ops.tara
                     patente_min = Ops.patente.strip()
-            print(AL_Prods.nombre.strip() + '\t' + patente_min)
+            print(prod.nombre.strip() + '\t' + patente_min)
+    os.system("pause")
 
 
 def busq_Sec_1D(array, busq):
@@ -1032,6 +1034,7 @@ def busq_Sec_1D(array, busq):
 
 
 def listadoSyR():
+    os.system("cls")
     global AL_Silos, AF_Silos
     global AL_Ops, AF_Ops
     print("----------------------------")
@@ -1069,14 +1072,14 @@ def listadoSyR():
                 print("| "+reg.patente.strip)
     except:
         print("| -")
-    
+    os.system("pause")
 
 #  programa main
 
 archivos()
 
 seleccion = "-"  # char
-while seleccion != 0:
+while seleccion != "0":
     menu_principal()
     seleccion = input("Seleccione una opcion: ")
     match seleccion:
