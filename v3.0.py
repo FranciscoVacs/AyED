@@ -104,7 +104,8 @@ def archivos():
     AF_Cupos = "cupos.dat"
     if not os.path.exists(AF_Cupos):
         AL_Cupos = open(AF_Cupos, "w+b")
-        pickle.dump(0, AL_Cupos)
+        temp = 0
+        pickle.dump(temp, AL_Cupos)
         AL_Cupos.flush()
     else:
         AL_Cupos = open(AF_Cupos, "r+b")
@@ -611,21 +612,16 @@ def checkTurnos(patente, fecha):
         Ops = pickle.load(AL_Ops)
         if Ops.patente == patente and Ops.fecha_cupo == fecha:
             return pos
-        elif Ops.patente == patente:
-            print("no coinciden las patentes")
-        else:
-            print(len(Ops.fecha_cupo))
-            print(len(fecha))
-            print("no coinciden las fechas")
     return -1
 
 
-def entrega_cupos():
+def entrega_cupos(cupos):
     os.system("cls")
     global AF_Prods, AF_Ops, AL_Ops
     if os.path.getsize(AF_Prods) == 0 or not algunActivo():
         print("Todavia no se cargo ningun producto, cargue uno y vuelva")
         os.system("pause")
+        return cupos
     else:
         otro = True  # boolean
         while otro:
@@ -655,7 +651,7 @@ def entrega_cupos():
                     os.system("pause")
                 else:
                     ok = True
-            if checkTurnos(new_patente, fechaCupo.ljust(10)) != -1:
+            if checkTurnos(new_patente, fechaCupo) != -1:
                 print("La patente ya tiene cupo")
             else:
                 isInt = False
@@ -669,7 +665,7 @@ def entrega_cupos():
                         reg = Operacion()
                         reg.cod = str(cod).ljust(5)
                         reg.patente = new_patente.ljust(7)
-                        reg.fecha_cupo = fechaCupo.ljust(10)
+                        reg.fecha_cupo = fechaCupo
                         reg.estado = 'P'
                         AL_Ops.seek(0, 2)
                         pickle.dump(reg, AL_Ops)
@@ -693,6 +689,7 @@ def entrega_cupos():
                     print("No se ingresó un producto válido. Volviendo al menú principal...")
                     os.system("pause")
                     return pos
+        return pos
         
 
 def menu_recepcion():  # camiones: array[7][1] de string[6]; estado:char
@@ -910,10 +907,10 @@ def registro_tara():
             if reg_ops.estado == 'B':
                 isInt = False
                 while not isInt:
-                    tara = input(" Ingrese la tara (Máx 45tn): ")
-                    isInt = verifInt(tara, 1, int(reg_ops.bruto))
+                    tara = input(" Ingrese la tara: ")
+                    isInt = verifInt(tara, 1, int(reg_ops.bruto)-1)
                     if not isInt:
-                        print(" La tara no puede ser menor al peso bruto")
+                        print(" La tara debe ser mayor al peso bruto")
                         os.system("pause")
                 tara = int(tara)
                 tara = str(tara).ljust(2)
@@ -937,7 +934,7 @@ def registro_tara():
             os.system("pause")
 
 
-def reportes():  # cupos: int; estado:array[7] de char; camiones:array[7][1] de string[6]; pesos: array[2] de int; cargados: array[2] de string[6]
+def reportes():
     os.system("cls")
     global AL_Silos, AF_Silos, AL_Prods
     global AF_Ops, AL_Ops, AL_Cupos
@@ -948,6 +945,7 @@ def reportes():  # cupos: int; estado:array[7] de char; camiones:array[7][1] de 
     print("----------------------------")
     print("| REPORTES: ")
     print("----------------------------")
+    AL_Cupos.seek(0)
     cupos = pickle.load(AL_Cupos)
     print("| Cantidad de cupos otorgados:" + '\t' + str(cupos))
     print("----------------------------")
@@ -961,18 +959,18 @@ def reportes():  # cupos: int; estado:array[7] de char; camiones:array[7][1] de 
             recibidos += 1
     print("| Cantidad de camiones recibidos:" + '\t' + str(recibidos))
     print("----------------------------")
+
     if os.path.getsize(AF_Silos) != 0:
         print("| Cantidad de camiones de...")
         recibidos = 0
-        AL_Ops.seek(0)
         AL_Prods.seek(0)
-        AL_Promedios.seek(0)
+        prom = Promedio()
         while AL_Prods.tell() < os.path.getsize(AF_Prods):
-            prom = pickle.load(AL_Promedios)
             prod = pickle.load(AL_Prods)
-            while AL_Ops.tell < t:
+            AL_Ops.seek(0)
+            while AL_Ops.tell() < t:
                 Ops = pickle.load(AL_Ops)
-                if Ops.cod == prod.nombre:
+                if Ops.cod == prod.cod:
                     recibidos += 1
             prom.div = recibidos
             pickle.dump(prom, AL_Promedios)
@@ -986,15 +984,14 @@ def reportes():  # cupos: int; estado:array[7] de char; camiones:array[7][1] de 
         AL_Silos.seek(0)
         AL_Promedios.seek(0)
         while AL_Silos.tell() < t:
-            prom = pickle.load(AL_Promedios)
             silo = pickle.load(AL_Silos)
-            pos_prod = busqCod(silo.cod_prod, "B")
+            pos_prod = busqCod(int(silo.cod_prod), "B")
             AL_Prods.seek(pos_prod)
             prod = pickle.load(AL_Prods)
             prom.total = int(silo.stock)
             prom.nombre = prod.nombre
-            print(prod.nombre.strip() + ":" + '\t' + silo.stock.strip())
-            pickle.dump(AL_Promedios)
+            print(prod.nombre.strip() + ":" + '\t' + str(silo.stock))
+            pickle.dump(prom, AL_Promedios)
             AL_Promedios.flush()
 
         print("----------------------------")
@@ -1007,70 +1004,20 @@ def reportes():  # cupos: int; estado:array[7] de char; camiones:array[7][1] de 
             else:
                 print(prom.nombre.strip() + ':' + '\t' + "0.0")
 
-    """
-    i = 0  # int
-    recibidos = 0  # int
-    camiones_prod = [0] * 3  # array[2] de string[7]
-    pesos_netos = [0] * 3  # array[2] de int
-
-    while i < 8:
-        if estado[i] == 'E' or estado[i] == 'C':
-            recibidos += 1
-        if camiones[i][0] != "":
-            for j in range(2):
-                if camiones[i][1] == cargados[j]:
-                    camiones_prod[j] += 1
-                    pesos_netos[j] += pesos[i][2]
-        i += 1
-
-    print("Se recibieron " + str(recibidos) + " camiones")
-
-    if recibidos > 1:
-        for i in range(3):
-            if cargados[i] != "":
-                if camiones_prod[i] > 0:
-                    print("Hay " + str(camiones_prod[i]) + " camiones de " + cargados[i])
-                    print("Peso neto promedio de " + cargados[i] + ": " + str(pesos_netos[i] / camiones_prod[i]))
-                    j = 0  # int
-                    neto_max = 0  # int
-                    patente_max = ""  # string[6]
-                    while j < 8:
-                        if camiones[j][1] == cargados[i] and neto_max <= pesos[j][2]:
-                            neto_max = pesos[j][2]
-                            patente_max = camiones[j][0]
-                        j += 1
-                    print("Patente que más " + cargados[i] + " trajo: " + patente_max)
-                    j = 0
-                    neto_min = neto_max  # int
-                    patente_min = patente_max  # string[6]
-                    while j < 8:
-                        if camiones[j][1] == cargados[i] and neto_min >= pesos[j][2]:
-                            neto_min = pesos[j][2]
-                            patente_min = camiones[j][0]
-                        j += 1
-                    print("Patente que menos " + cargados[i] + " trajo: " + patente_min)
-                print("Peso neto de " + cargados[i] + ": " + str(pesos_netos[i]))
-        for i in range(recibidos - 1):
-            j = i + 1
-            while j <= recibidos:
-                if pesos[i][2] < pesos[j][2]:
-                    for k in range(3):
-                        aux_pesos = pesos[i][k]
-                        pesos[i][k] = pesos[j][k]
-                        pesos[j][k] = aux_pesos
-                    for k in range(2):
-                        aux_camiones = camiones[i][k]
-                        camiones[i][k] = camiones[j][k]
-                        camiones[j][k] = aux_camiones
-                j += 1
-        print("LISTADO ORDENADO POR PESO NETO: ")
-        for i in range(recibidos):
-            print(camiones[i][0] + '\t' + camiones[i][1] + '\t' + str(pesos[i][2]))
-    elif recibidos == 1:
-        print("LISTADO ORDENADO POR PESO NETO: ")
-        print(camiones[0][0] + '\t' + camiones[0][1] + '\t' + str(pesos[0][2]))
-    os.system("pause")
-"""
+        print("----------------------------")
+        print("| Camión de menor peso de...")
+        AL_Prods.seek(0)
+        min = 0
+        patente_min = "-"
+        while AL_Prods.tell() < os.path.getsize(AF_Prods):
+            prod = pickle.load(AL_Prods)
+            AL_Ops.seek(0)
+            while AL_Ops.tell() < t:
+                Ops = pickle.load(AL_Ops)
+                if Ops.cod == prod.cod and (Ops.bruto-Ops.tara)<min:
+                    min = Ops.bruto-Ops.tara
+                    patente_min = Ops.patente.strip()
+            print(AL_Prods.nombre.strip() + '\t' + patente_min)
 
 
 def busq_Sec_1D(array, busq):
@@ -1084,18 +1031,49 @@ def busq_Sec_1D(array, busq):
         return i
 
 
-# programa main
+def listadoSyR():
+    global AL_Silos, AF_Silos
+    global AL_Ops, AF_Ops
+    print("----------------------------")
+    print("| Silo con mayor stock: ")
+    silomax = "-"
+    AL_Silos.seek(0)
+    try:
+        silo = pickle.load(AL_Silos)
+        silomax = silo.nombre.strip()
+        max = int(silo.stock)
+        AL_Silos.seek(AL_Silos.tell())
+        while AL_Silos.tell() < os.path.getsize(AF_Silos):
+            silo = pickle.load(AL_Silos)
+        print("| " + silomax)
+    except:
+        print("| " + silomax)
+
+    esFecha = False
+    while not esFecha:
+        try:
+            fecha = input("Ingrese la fecha del turno deseado (dd/mm/aaaa): ")
+            datetime.strptime(fecha, "%d/%m/%Y")
+            esFecha = True
+        except:
+            print("Fecha invalida")
+            os.system("pause")
+    f = fecha.split('/')
+    print("| Patentes rechazadas: ")
+    fecha = f[2] + '-' + f[1] + '-' + f[0]
+    try:
+        AL_Ops.seek(0)
+        while AL_Ops.tell() < os.path.getsize(AF_Ops):
+            reg = pickle.load(AL_Ops)
+            if reg.estado == 'R':
+                print("| "+reg.patente.strip)
+    except:
+        print("| -")
+    
+
+#  programa main
 
 archivos()
-
-cargados = [""] * 3  # array[2] de string[6]
-camiones = [""] * 8  # array[7][2] de string[6]
-for i in range(8):
-    camiones[i] = [""] * 2
-estado = ["-"] * 8  # array[7] de char
-pesos = [0] * 8  # array[7][2] de int
-for i in range(8):
-    pesos[i] = [0] * 3
 
 seleccion = "-"  # char
 while seleccion != 0:
@@ -1108,7 +1086,7 @@ while seleccion != 0:
 
         case "2":
             cupos = pickle.load(AL_Cupos)
-            cupos = entrega_cupos()
+            cupos = entrega_cupos(cupos)
             pickle.dump(cupos, AL_Cupos)
 
         case "3":
@@ -1131,7 +1109,7 @@ while seleccion != 0:
             reportes()
 
         case "9":
-            print()
+            listadoSyR()
 
         case "0":
             print("FIN DEL PROGRAMA")
