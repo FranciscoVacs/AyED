@@ -659,6 +659,28 @@ def menu_recepcion(camiones, estado):  # camiones: array[7][1] de string[6]; est
                     print("El camión ya fue recibido o se encuentra en una etapa posterior")
 
 
+def ordenaRubros():
+    global AL_Rubros, AF_Rubros
+    AL_Rubros.seek(0)
+    aux = pickle.load(AL_Rubros)
+    tReg = AL_Rubros
+    t = os.path.getsize(AF_Rubros)
+    cantReg = t // tReg
+    for i in range(0, cantReg-1):
+        for j in range(i+1, cantReg):
+            AL_Rubros.seek(i*tReg)
+            auxi = pickle.load(AL_Rubros)
+            AL_Rubros.seek(j*tReg)
+            auxj = pickle.load(AL_Rubros)
+            if auxi.cod > auxj.cod:
+                AL_Rubros.seek(i*tReg)
+                pickle.dump(auxj, AL_Rubros)
+                AL_Rubros.seek(j*tReg)
+                pickle.dump(auxi, AL_Rubros)
+
+def calidad():
+    ordenaRubros()
+
 def registro_pb(camiones, estado,
                 pesos):  # camiones: array[7][1] de string[6]; estado:array[7] de char; pesos: array[2] de int
     os.system("cls")
@@ -827,7 +849,9 @@ while seleccion != "0":
     elif seleccion == "2":
         cupos = entrega_cupos(camiones, estado, cargados[:])
 
-    elif seleccion == "4" or seleccion == "9":
+    elif seleccion == "4":
+        calidad()
+    elif seleccion == "9":
         print()
 
     elif seleccion == "6":
