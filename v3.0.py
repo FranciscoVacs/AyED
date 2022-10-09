@@ -6,10 +6,8 @@
 import os
 import os.path
 import pickle
-import io
 from datetime import datetime
 from datetime import date
-from turtle import pos
 
 
 class Operacion:
@@ -51,11 +49,19 @@ class Silo:
         self.stock = 0
 
 
+class Promedio:
+    def __int__(self):
+        self.nombre = ""
+        self.total = 0
+        self.div = 0
+
+
 global AL_RubroProds, AF_RubroProds
 global AL_Silos, AF_Silos
 global AL_Rubros, AF_Rubros
 global AL_Prods, AF_Prods
 global AL_Ops, AF_Ops
+global AL_Cupos
 
 
 def archivos():
@@ -64,6 +70,7 @@ def archivos():
     global AL_Rubros, AF_Rubros
     global AL_Prods, AF_Prods
     global AL_Ops, AF_Ops
+    global AL_Cupos
     AF_RubroProds = "rubro_prods.dat"
     if not os.path.exists(AF_RubroProds):
         AL_RubroProds = open(AF_RubroProds, "w+b")
@@ -93,6 +100,14 @@ def archivos():
         AL_Ops = open(AF_Ops, "w+b")
     else:
         AL_Ops = open(AF_Ops, "r+b")
+
+    AF_Cupos = "cupos.dat"
+    if not os.path.exists(AF_Cupos):
+        AL_Cupos = open(AF_Cupos, "w+b")
+        pickle.dump(0, AL_Cupos)
+        AL_Cupos.flush()
+    else:
+        AL_Cupos = open(AF_Cupos, "r+b")
 
 
 def menu_principal():
@@ -211,7 +226,7 @@ def verifInt(x, min, max):
             return True
     except:
         os.system("cls")
-        print("El codigo de producto debe ser un numero entero")
+        print("Se debe ingresar un numero entero")
         return False
 
 
@@ -299,7 +314,6 @@ def altaRubros():
         cod = int(cod)
         if cod != 0:
             pos = busqCod(cod, "C")
-            print(pos)
             if pos == -1:
                 reg.cod = str(cod).ljust(5)
                 reg.nombre = input("Ingrese el rubro a cargar: ").upper()
@@ -370,13 +384,17 @@ def altaSilos():
                         codP = int(codP)
                         pos = busqCod(codP, "B")
                         if pos != -1:
-                            reg.cod_prod = str(codP).ljust(5)
+                            if busqSilos(codP, "prod") == -1:
+                                reg.cod_prod = str(codP).ljust(5)
+                                pickle.dump(reg, AL_Silos)
+                                AL_Silos.flush()
+                            else:
+                                print(" Ya se ingresó un silo de ese producto")
+                                os.system("pause")
                         else:  # Refinar busqCod para q no incluya inactivos (agregar otra f(x))
-                            print("El código ingresado no corresponde con ningún producto cargado")
-                    pickle.dump(reg, AL_Silos)
-                    AL_Silos.flush()
+                            print(" El código ingresado no corresponde con ningún producto cargado")
                 else:
-                    print("Silo ya ingresado")
+                    print(" Silo ya ingresado")
                     os.system("pause")
                 isInt = False
 
@@ -400,52 +418,53 @@ def altaRxP():
         os.system("cls")
         print("Todavía no se cargó ningún rubro y/o producto")
         os.system("pause")
-    isInt = False
-    cod = -1
-    reg = Rubro_prod()
-    while not isInt:
-        codR = input("Ingrese el código del rubro: ")
-        isInt = verifInt(codR, 1, 99999)
-    isInt = False
-    codR = int(codR)
-    pos = busqCod(codR, "C")
-    print(pos)
-    if pos != -1:
+    else:
+        isInt = False
+        cod = -1
+        reg = Rubro_prod()
         while not isInt:
-            codP = input("Ingrese el código del producto: ")
-            isInt = verifInt(codP, 1, 99999)
-        codP = int(codP)
-        pos = busqCod(codP, "B")
-        AL_Prods.seek(pos)
-        aux = pickle.load(AL_Prods)
-        if busqRxP(codR, codP) == -1:
-            codP = str(codP).ljust(5)
-            codR = str(codR).ljust(5)
-            if pos != -1 and aux.cargado:
-                reg.cod_rubro = codR
-                reg.cod_prod = codP
-                isFloat = False
-                while not isFloat:
-                    min = input("Ingrese el valor mínimo: ")
-                    isFloat = verifFloat(min, 0, 100)
-                isFloat = False
-                min = int(min)
-                while not isFloat:
-                    max = input("Ingrese el valor máximo: ")
-                    isFloat = verifFloat(max, min, 100)
-                reg.min = str(min).ljust(8)
-                reg.max = str(max).ljust(8)
-                pickle.dump(reg, AL_RubroProds)
-                AL_RubroProds.flush()
+            codR = input("Ingrese el código del rubro: ")
+            isInt = verifInt(codR, 1, 99999)
+        isInt = False
+        codR = int(codR)
+        pos = busqCod(codR, "C")
+        print(pos)
+        if pos != -1:
+            while not isInt:
+                codP = input("Ingrese el código del producto: ")
+                isInt = verifInt(codP, 1, 99999)
+            codP = int(codP)
+            pos = busqCod(codP, "B")
+            AL_Prods.seek(pos)
+            aux = pickle.load(AL_Prods)
+            if busqRxP(codR, codP) == -1:
+                codP = str(codP).ljust(5)
+                codR = str(codR).ljust(5)
+                if pos != -1 and aux.cargado:
+                    reg.cod_rubro = codR
+                    reg.cod_prod = codP
+                    isFloat = False
+                    while not isFloat:
+                        min = input("Ingrese el valor mínimo: ")
+                        isFloat = verifFloat(min, 0, 100)
+                    isFloat = False
+                    min = int(min)
+                    while not isFloat:
+                        max = input("Ingrese el valor máximo: ")
+                        isFloat = verifFloat(max, min, 100)
+                    reg.min = str(min).ljust(8)
+                    reg.max = str(max).ljust(8)
+                    pickle.dump(reg, AL_RubroProds)
+                    AL_RubroProds.flush()
+                else:
+                    print("Producto no ingresado")
+                    os.system("pause")
             else:
-                print("Producto no ingresado")
+                print("Ya se ingresó ese rubro para ese producto")
                 os.system("pause")
         else:
-            print("Ya se ingresó ese rubro para ese producto")
+            print("Rubro no ingresado")
             os.system("pause")
-    else:
-        print("Rubro no ingresado")
-        os.system("pause")
 
 
 def verifFloat(x, min, max):
@@ -592,6 +611,12 @@ def checkTurnos(patente, fecha):
         Ops = pickle.load(AL_Ops)
         if Ops.patente == patente and Ops.fecha_cupo == fecha:
             return pos
+        elif Ops.patente == patente:
+            print("no coinciden las patentes")
+        else:
+            print(len(Ops.fecha_cupo))
+            print(len(fecha))
+            print("no coinciden las fechas")
     return -1
 
 
@@ -630,7 +655,7 @@ def entrega_cupos():
                     os.system("pause")
                 else:
                     ok = True
-            if checkTurnos(new_patente, fechaCupo) != -1:
+            if checkTurnos(new_patente, fechaCupo.ljust(10)) != -1:
                 print("La patente ya tiene cupo")
             else:
                 isInt = False
@@ -640,29 +665,34 @@ def entrega_cupos():
                     cod = int(cod)
                 pos = busqCod(cod, "B")
                 if pos != -1:
-                    reg = Operacion()
-                    reg.cod = str(cod).ljust(5)
-                    reg.patente = new_patente.ljust(7)
-                    reg.fecha_cupo = fechaCupo
-                    reg.estado = 'P'
-                    AL_Ops.seek(0, 2)
-                    pickle.dump(reg, AL_Ops)
-                    AL_Ops.flush()
-                    rta = ""  # char
-                    while rta != "S" and rta != "N":
-                        rta = input("Obtener otro cupo? S/N: ").upper()
-                        if rta != "S" and rta != "N":
-                            print("Rta no aceptada")
-                            os.system("pause")
-                    if rta == "S":
-                        otro = True
+                    if busqSilos(cod, "prod") != -1:
+                        reg = Operacion()
+                        reg.cod = str(cod).ljust(5)
+                        reg.patente = new_patente.ljust(7)
+                        reg.fecha_cupo = fechaCupo.ljust(10)
+                        reg.estado = 'P'
+                        AL_Ops.seek(0, 2)
+                        pickle.dump(reg, AL_Ops)
+                        AL_Ops.flush()
+                        rta = ""  # char
+                        while rta != "S" and rta != "N":
+                            rta = input("Obtener otro cupo? S/N: ").upper()
+                            if rta != "S" and rta != "N":
+                                print("Rta no aceptada")
+                                os.system("pause")
+                        if rta == "S":
+                            print("respuesta ese")
+                            otro = True
+                        else:
+                            return pos+1
                     else:
-                        return pos+1
+                        print("No tenemos silos de ese producto. Volviendo al menú principal...")
+                        os.system("pause")
+                        return pos
                 else:
                     print("No se ingresó un producto válido. Volviendo al menú principal...")
                     os.system("pause")
                     return pos
-                return pos
         
 
 def menu_recepcion():  # camiones: array[7][1] de string[6]; estado:char
@@ -670,7 +700,8 @@ def menu_recepcion():  # camiones: array[7][1] de string[6]; estado:char
     global AF_Ops, AL_Ops
     new_patente = ""  # string[6]
     if os.path.getsize(AF_Ops) == 0:
-        print("Todavia no se entrego ningún cupo")
+        print("Todavia no se otorgó ningun cupo")
+        os.system("pause")
     else:
         while new_patente != "*":
             while (len(new_patente) < 6 or len(new_patente) > 7) and new_patente != "*":
@@ -720,7 +751,7 @@ def ordenaRubros():
 
 def busqDicRubro(x):
     global AL_Rubros, AF_Rubros
-    x= int(x)
+    x = int(x)
     AL_Rubros.seek(0)
     aux = pickle.load(AL_Rubros)
     tReg = AL_Rubros.tell()
@@ -746,140 +777,237 @@ def busqDicRubro(x):
 
 def calidad():
     os.system("cls")
-    global AL_Ops, AL_Prods, AL_Rubros
-    new_patente = ""
-    while len(new_patente) < 6 or len(new_patente) > 7:
-        new_patente = input("Ingrese la nueva patente: ")
-        if len(new_patente) < 6 or len(new_patente) > 7:
-            print("Patente no aceptada")
+    global AL_Ops, AL_Prods, AL_Rubros, AF_Ops
+    if os.path.getsize(AF_Ops) == 0:
+        print("Todavia no se otorgó ningun cupo")
+        os.system("pause")
+    else:
+        new_patente = ""
+        while len(new_patente) < 6 or len(new_patente) > 7:
+            new_patente = input("Ingrese la nueva patente: ")
+            if len(new_patente) < 6 or len(new_patente) > 7:
+                print("Patente no aceptada")
+                os.system("pause")
+                os.system("cls")
+        new_patente = new_patente.upper().ljust(7)
+        pos = checkTurnos(new_patente, str(date.today()))
+        if pos != -1:
+            AL_Ops.seek(pos)
+            reg_ops = pickle.load(AL_Ops)
+            codProd = int(reg_ops.cod)  # codigo del producto (en operaciones)
+            if reg_ops.estado == 'A':
+                posProd = busqCod(codProd, "B")
+                AL_Prods.seek(posProd)
+                reg = pickle.load(AL_Prods)  # Aca reg. es productos
+                os.system("cls")
+                print("----------------------------")
+                print("| PRODUCTO: " + '\t' + reg.nombre)
+                print("----------------------------")
+                ordenaRubros()
+                size = os.path.getsize(AF_RubroProds)
+                AL_RubroProds.seek(0)
+                strikes = 0
+                while AL_RubroProds.tell() < size and strikes < 2:
+                    reg = pickle.load(AL_RubroProds)  # aca reg es RxP
+                    if int(reg.cod_prod) == codProd:
+                        posRubro = busqDicRubro(reg.cod_rubro)
+                        AL_Rubros.seek(posRubro)
+                        rubro = pickle.load(AL_Rubros)
+                        print("| Rubro: " + '\t' + rubro.nombre)
+                        si = ""
+                        while si != "SI":
+                            isFloat = False
+                            while not isFloat:
+                                valor = input("| Ingrese el valor del rubro : ")
+                                isFloat = verifFloat(valor, 0, 100)
+                            si = input("| Revise y confirme (Si/No): ").upper()
+                            while si != "SI" and si != "NO":
+                                si = input("| Revise y confirme (Si/No): ").upper()
+                        print("----------------------------")
+                        if valor > reg.max or valor < reg.min:
+                            strikes += 1
+                if strikes < 2:
+                    reg_ops.estado = 'C'
+                    pickle.dump(reg_ops, AL_Ops)
+                    AL_Ops.flush()
+                    print(" Carga aprovada")
+                    os.system("pause")
+                else:
+                    reg_ops.estado = 'R'
+                    pickle.dump(reg_ops, AL_Ops)
+                    AL_Ops.flush()
+                    print(" Carga rechazada")
+                    os.system("pause")
+                print("----------------------------")
+            else:
+                print(" El camión se encuentra en otra etapa del proceso")
+                os.system("pause")
+        else:
+            print(" La patente ingresada no tiene turno para hoy")
             os.system("pause")
-            os.system("cls")
-    new_patente = new_patente.upper().ljust(7)
-    pos = checkTurnos(new_patente, str(date.today()))
-    if pos != -1:
-        AL_Ops.seek(pos)
-        reg_ops = pickle.load(AL_Ops)
-        codProd = int(reg_ops.cod)  # codigo del producto (en operaciones)
-        if reg_ops.estado == 'A':
-            posProd = busqCod(codProd, "B")
-            AL_Prods.seek(posProd)
-            reg = pickle.load(AL_Prods)  # Aca reg. es productos
-            os.system("cls")
-            print("----------------------------")
-            print("| PRODUCTO: " + '\t' + reg.nombre)
-            print("----------------------------")
-            ordenaRubros()
-            size = os.path.getsize(AF_RubroProds)
-            AL_RubroProds.seek(0)
-            strikes = 0
-            while AL_RubroProds.tell() < size and strikes < 2:
-                reg = pickle.load(AL_RubroProds)  # aca reg es RxP
-                if int(reg.cod_prod) == codProd:
-                    posRubro = busqDicRubro(reg.cod_rubro)
-                    AL_Rubros.seek(posRubro)
-                    rubro = pickle.load(AL_Rubros)
-                    print("| Rubro: " + '\t' + rubro.nombre)
-                    si = ""
-                    while si != "SI":
-                        isFloat = False
-                        while not isFloat:
-                            valor = input("| Ingrese el valor del rubro : ")
-                            isFloat = verifFloat(valor, 0, 100)
-                        isFloat = False
-                        si = input("| Revise y confirme (Si/No): ").upper()
-                        while si != "SI" and si != "NO":
-                            si = input("Revise y confirme (Si/No): ").upper()
-                    print("----------------------------")
-                    if valor > reg.max or valor < reg.min:
-                        strikes += 1
-            if strikes < 2:
-                reg_ops.estado = 'C'
+
+
+def registro_pb():
+    os.system("cls")
+    global AL_Ops, AL_Prods, AF_Ops
+    if os.path.getsize(AF_Ops) == 0:
+        print(" Todavia no se otorgó ningun cupo")
+        os.system("pause")
+    else:
+        new_patente = ""
+        while len(new_patente) < 6 or len(new_patente) > 7:
+            new_patente = input(" Ingrese la nueva patente: ")
+            if len(new_patente) < 6 or len(new_patente) > 7:
+                print(" Patente no aceptada")
+                os.system("pause")
+                os.system("cls")
+        new_patente = new_patente.upper().ljust(7)
+        pos = checkTurnos(new_patente, str(date.today()))
+        if pos != -1:
+            AL_Ops.seek(pos)
+            reg_ops = pickle.load(AL_Ops)
+            if reg_ops.estado == 'C':
+                isInt = False
+                while not isInt:
+                    pb = input(" Ingrese el peso bruto (Máx 45tn): ")
+                    isInt = verifInt(pb, 1, 45)
+                pb = int(pb)
+                pb = str(pb).ljust(2)
+                reg_ops.bruto = pb
+                reg_ops.estado = 'B'
                 pickle.dump(reg_ops, AL_Ops)
                 AL_Ops.flush()
-                print("Carga aprovada")
+                os.system("cls")
+                os.system(" Peso bruto registrado")
                 os.system("pause")
             else:
-                reg_ops.estado = 'R'
+                print(" El camión se encuentra en otra etapa del proceso")
+                os.system("pause")
+        else:
+            print(" La patente ingresada no tiene turno para hoy")
+            os.system("pause")
+
+
+def registro_tara():
+    os.system("cls")
+    global AF_Ops
+    if os.path.getsize(AF_Ops) == 0:
+        print(" Todavia no se otorgó ningun cupo")
+        os.system("pause")
+    else:
+        new_patente = ""
+        while len(new_patente) < 6 or len(new_patente) > 7:
+            new_patente = input(" Ingrese la nueva patente: ")
+            if len(new_patente) < 6 or len(new_patente) > 7:
+                print(" Patente no aceptada")
+                os.system("pause")
+                os.system("cls")
+        new_patente = new_patente.upper().ljust(7)
+        pos = checkTurnos(new_patente, str(date.today()))
+        if pos != -1:
+            AL_Ops.seek(pos)
+            reg_ops = pickle.load(AL_Ops)
+            if reg_ops.estado == 'B':
+                isInt = False
+                while not isInt:
+                    tara = input(" Ingrese la tara (Máx 45tn): ")
+                    isInt = verifInt(tara, 1, int(reg_ops.bruto))
+                    if not isInt:
+                        print(" La tara no puede ser menor al peso bruto")
+                        os.system("pause")
+                tara = int(tara)
+                tara = str(tara).ljust(2)
+                reg_ops.tara = tara
+                reg_ops.estado = 'F'
+                bt = int(reg_ops.bruto)
+                pos = busqSilos(int(reg_ops.cod), "prod")
                 pickle.dump(reg_ops, AL_Ops)
                 AL_Ops.flush()
-                print("Carga rechazada")
+                AL_Silos.seek(pos)
+                reg_silos = pickle.load(AL_Silos)
+                reg_silos.stock += bt-int(tara)
+                os.system("cls")
+                os.system(" Tara registrada - Camión procesado por completo")
                 os.system("pause")
-            print("----------------------------")
-        else:
-            print("El camión se encuentra en otra etapa del proceso.")
-    else:
-        print("La patente ingresada no tiene turno para hoy")
-
-
-
-def registro_pb(camiones, estado,
-                pesos):  # camiones: array[7][1] de string[6]; estado:array[7] de char; pesos: array[2] de int
-    os.system("cls")
-    """if camiones[0][0] != "":
-        patente = ""  # string[6]
-        while len(patente) < 6 or len(patente) > 7:
-            patente = input("Ingrese la patente del camion: ").upper()
-            if len(patente) < 6 or len(patente) > 7:
-                print("Patente no aceptada")
-                os.system("pause")
-        i = 0  # int
-        while i < 8 and patente != camiones[i][0]:
-            i += 1
-        if i < 8 and pesos[i][0] == 0:
-            if estado[i] == 'E' and pesos[i][0] == 0:
-                pesos[i][0] = int(input("Ingrese el peso bruto del camion: "))
-            elif estado[i] != 'E':
-                print("El camion no fue recibido")
+            else:
+                print("El camión se encuentra en otra etapa del proceso")
                 os.system("pause")
         else:
-            print("El peso bruto de este camion ya fue registrado")
+            print("La patente ingresada no tiene turno para hoy")
             os.system("pause")
-    else:
-        print("Todavia no se asigno ningun cupo")
-        os.system("pause")"""
 
 
-def registro_tara(camiones, estado,
-                  pesos):  # camiones: array[7][1] de string[6]; estado:array[7] de char; pesos: array[2] de int
+def reportes():  # cupos: int; estado:array[7] de char; camiones:array[7][1] de string[6]; pesos: array[2] de int; cargados: array[2] de string[6]
     os.system("cls")
-    if camiones[0][0] != "":
-        patente = ""  # string[6]
-        while len(patente) < 6 or len(patente) > 7:
-            patente = input("Ingrese la patente del camion: ").upper()
-            if len(patente) < 6 or len(patente) > 7:
-                print("Patente no aceptada")
-                os.system("pause")
-        i = 0  # int
-        while i < 8 and patente != camiones[i][0]:
-            i += 1
-        if i < 8 and pesos[i][1] == 0:
-            pesos[i][1] = pesos[i][0]
-            if estado[i] == 'E' and pesos[i][0] != 0 and pesos[i][1] == pesos[i][0]:
-                while pesos[i][1] >= pesos[i][0]:
-                    pesos[i][1] = int(input("Ingrese la tara del camion: "))
-                    if pesos[i][1] >= pesos[i][0]:
-                        print("La tara debe ser menor o igual al peso bruto")
-                        os.system("pause")
-                estado[i] = 'C'
-                pesos[i][2] = pesos[i][0] - pesos[i][1]
-            elif estado[i] != 'E':
-                print("El camion no fue recibido")
-                os.system("pause")
-            elif pesos[i][0] == 0:
-                print("Previamente se debe registrar el peso bruto")
-                os.system("pause")
-        else:
-            print("La tara de este camion ya fue registrada")
-            os.system("pause")
-    else:
-        print("Todavia no se asigno ningun cupo")
-        os.system("pause")
+    global AL_Silos, AF_Silos, AL_Prods
+    global AF_Ops, AL_Ops, AL_Cupos
 
+    AF_Promedios = "promedios.dat"
+    AL_Promedios = open(AF_Promedios, "w+b")
 
-def reportes(cupos, estado, camiones, pesos,
-             cargados):  # cupos: int; estado:array[7] de char; camiones:array[7][1] de string[6]; pesos: array[2] de int; cargados: array[2] de string[6]
-    os.system("cls")
-    print("Se entregaron " + str(cupos) + " cupos")
+    print("----------------------------")
+    print("| REPORTES: ")
+    print("----------------------------")
+    cupos = pickle.load(AL_Cupos)
+    print("| Cantidad de cupos otorgados:" + '\t' + str(cupos))
+    print("----------------------------")
+
+    t = os.path.getsize(AF_Ops)
+    AL_Ops.seek(0)
+    recibidos = 0
+    while AL_Ops.tell() < t:
+        Ops = pickle.load(AL_Ops)
+        if Ops.cod != 'P':
+            recibidos += 1
+    print("| Cantidad de camiones recibidos:" + '\t' + str(recibidos))
+    print("----------------------------")
+    if os.path.getsize(AF_Silos) != 0:
+        print("| Cantidad de camiones de...")
+        recibidos = 0
+        AL_Ops.seek(0)
+        AL_Prods.seek(0)
+        AL_Promedios.seek(0)
+        while AL_Prods.tell() < os.path.getsize(AF_Prods):
+            prom = pickle.load(AL_Promedios)
+            prod = pickle.load(AL_Prods)
+            while AL_Ops.tell < t:
+                Ops = pickle.load(AL_Ops)
+                if Ops.cod == prod.nombre:
+                    recibidos += 1
+            prom.div = recibidos
+            pickle.dump(prom, AL_Promedios)
+            AL_Promedios.flush()
+            print("| " + prod.nombre.strip() + '\t' + str(recibidos))
+
+        print("----------------------------")
+        print("| Peso total de cada producto: ")
+
+        t = os.path.getsize(AF_Silos)
+        AL_Silos.seek(0)
+        AL_Promedios.seek(0)
+        while AL_Silos.tell() < t:
+            prom = pickle.load(AL_Promedios)
+            silo = pickle.load(AL_Silos)
+            pos_prod = busqCod(silo.cod_prod, "B")
+            AL_Prods.seek(pos_prod)
+            prod = pickle.load(AL_Prods)
+            prom.total = int(silo.stock)
+            prom.nombre = prod.nombre
+            print(prod.nombre.strip() + ":" + '\t' + silo.stock.strip())
+            pickle.dump(AL_Promedios)
+            AL_Promedios.flush()
+
+        print("----------------------------")
+        print("| Peso promedio por camión de...")
+        AL_Promedios.seek(0)
+        while AL_Promedios.tell() < os.path.getsize(AF_Promedios):
+            prom = pickle.load(AL_Promedios)
+            if prom.div != 0:
+                print(prom.nombre.strip() + ':' + '\t' + str(prom.total/prom.div))
+            else:
+                print(prom.nombre.strip() + ':' + '\t' + "0.0")
+
+    """
     i = 0  # int
     recibidos = 0  # int
     camiones_prod = [0] * 3  # array[2] de string[7]
@@ -942,6 +1070,7 @@ def reportes(cupos, estado, camiones, pesos,
         print("LISTADO ORDENADO POR PESO NETO: ")
         print(camiones[0][0] + '\t' + camiones[0][1] + '\t' + str(pesos[0][2]))
     os.system("pause")
+"""
 
 
 def busq_Sec_1D(array, busq):
@@ -967,48 +1096,52 @@ estado = ["-"] * 8  # array[7] de char
 pesos = [0] * 8  # array[7][2] de int
 for i in range(8):
     pesos[i] = [0] * 3
-cupos = 0  # int
 
 seleccion = "-"  # char
-while seleccion != "0":
+while seleccion != 0:
     menu_principal()
     seleccion = input("Seleccione una opcion: ")
+    match seleccion:
 
-    if seleccion == "1":
-        menu_administraciones()
+        case "1":
+            menu_administraciones()
 
-    elif seleccion == "2":
-        cupos = entrega_cupos()
+        case "2":
+            cupos = pickle.load(AL_Cupos)
+            cupos = entrega_cupos()
+            pickle.dump(cupos, AL_Cupos)
 
-    elif seleccion == "4":
-        calidad()
-    elif seleccion == "9":
-        print()
+        case "3":
+            menu_recepcion()
 
-    elif seleccion == "6":
-        print("Proceso en construcción\n")
-        os.system("pause")
+        case "4":
+            calidad()
 
-    elif seleccion == "3":
-        menu_recepcion()
+        case "5":
+            registro_pb()
 
-    elif seleccion == "5":
-        registro_pb(camiones[:], estado[:], pesos)
+        case "6":
+            print("Proceso en construcción\n")
+            os.system("pause")
 
-    elif seleccion == "7":
-        registro_tara(camiones[:], estado[:], pesos)
+        case "7":
+            registro_tara()
 
-    elif seleccion == "8":
-        reportes(cupos, estado[:], camiones[:], pesos[:], cargados[:])
+        case "8":
+            reportes()
 
-    elif seleccion == "0":
-        print("FIN DEL PROGRAMA")
-        AL_RubroProds.close()
-        AL_Silos.close()
-        AL_Rubros.close()
-        AL_Prods.close()
-        AL_Ops.close()
+        case "9":
+            print()
 
-    else:
-        print("Opcion incorrecta, seleccione otra")
-        os.system("pause")
+        case "0":
+            print("FIN DEL PROGRAMA")
+            AL_RubroProds.close()
+            AL_Silos.close()
+            AL_Rubros.close()
+            AL_Prods.close()
+            AL_Ops.close()
+            AL_Cupos.close()
+
+        case other:
+            print("Opcion incorrecta, seleccione otra")
+            os.system("pause")
