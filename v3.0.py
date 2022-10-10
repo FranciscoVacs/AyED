@@ -618,11 +618,13 @@ def checkTurnos(patente, fecha):
 
 
 def entrega_cupos(cupos):
+    print(cupos)
     os.system("cls")
     global AF_Prods, AF_Ops, AL_Ops
     if os.path.getsize(AF_Prods) == 0 or not algunActivo():
         print("Todavia no se cargo ningun producto, cargue uno y vuelva")
         os.system("pause")
+        print(cupos)
         return cupos
     else:
         otro = True  # boolean
@@ -634,7 +636,7 @@ def entrega_cupos(cupos):
                 if len(new_patente) < 6 or len(new_patente) > 7:
                     print("Patente no aceptada")
                     os.system("pause")
-                new_patente = new_patente.upper()
+            new_patente = new_patente.upper().ljust(7)
             ok = False
             while not ok:
                 esFecha = False
@@ -660,7 +662,7 @@ def entrega_cupos(cupos):
                 while not isInt:
                     cod = input("Ingrese el código del producto: ")
                     isInt = verifInt(cod, 1, 99999)
-                    cod = int(cod)
+                cod = int(cod)
                 pos = busqCod(cod, "B")
                 if pos != -1:
                     if busqSilos(cod, "prod") != -1:
@@ -673,6 +675,10 @@ def entrega_cupos(cupos):
                         pickle.dump(reg, AL_Ops)
                         AL_Ops.flush()
                         rta = ""  # char
+                        AL_Ops.seek(0)
+                        reg = pickle.load(AL_Ops)
+                        tReg = AL_Ops.tell()
+                        cupos = os.path.getsize(AF_Ops) // tReg
                         while rta != "S" and rta != "N":
                             rta = input("Obtener otro cupo? S/N: ").upper()
                             if rta != "S" and rta != "N":
@@ -681,17 +687,21 @@ def entrega_cupos(cupos):
                         if rta == "S":
                             otro = True
                         else:
-                            return pos+1
+                            print(cupos)
+                            return cupos
                     else:
                         print("No tenemos silos de ese producto. Volviendo al menú principal...")
                         os.system("pause")
-                        return pos
+                        print(cupos)
+                        return cupos
                 else:
                     print("No se ingresó un producto válido. Volviendo al menú principal...")
                     os.system("pause")
-                    return pos
-        return pos
-        
+                    print(cupos)
+                    return cupos
+        print(cupos)
+        return cupos
+
 
 def menu_recepcion():  # camiones: array[7][1] de string[6]; estado:char
     os.system("cls")
@@ -828,7 +838,7 @@ def calidad():
                     reg_ops.estado = 'C'
                     pickle.dump(reg_ops, AL_Ops)
                     AL_Ops.flush()
-                    print(" Carga aprovada")
+                    print(" Carga aprobada")
                     os.system("pause")
                 else:
                     reg_ops.estado = 'R'
@@ -948,6 +958,8 @@ def reportes():
     print("----------------------------")
     AL_Cupos.seek(0)
     cupos = pickle.load(AL_Cupos)
+    pickle.dump(cupos, AL_Cupos)
+    print(cupos)
     print("| Cantidad de cupos otorgados:" + '\t' + str(cupos))
     print("----------------------------")
 
@@ -956,7 +968,7 @@ def reportes():
     recibidos = 0
     while AL_Ops.tell() < t:
         Ops = pickle.load(AL_Ops)
-        if Ops.cod != 'P':
+        if Ops.estado != 'P':
             recibidos += 1
     print("| Cantidad de camiones recibidos:" + '\t' + str(recibidos))
     print("----------------------------")
@@ -971,7 +983,7 @@ def reportes():
             AL_Ops.seek(0)
             while AL_Ops.tell() < t:
                 Ops = pickle.load(AL_Ops)
-                if Ops.cod == prod.cod:
+                if Ops.cod == prod.cod and Ops.estado != 'P':
                     recibidos += 1
             prom.div = recibidos
             pickle.dump(prom, AL_Promedios)
@@ -1004,6 +1016,8 @@ def reportes():
                 print(prom.nombre.strip() + ':' + '\t' + str(prom.total/prom.div))
             else:
                 print(prom.nombre.strip() + ':' + '\t' + "0.0")
+        AL_Promedios.close()
+        os.remove(AF_Promedios)
 
         print("----------------------------")
         print("| Camión de menor peso de...")
@@ -1013,12 +1027,15 @@ def reportes():
         while AL_Prods.tell() < os.path.getsize(AF_Prods):
             prod = pickle.load(AL_Prods)
             AL_Ops.seek(0)
-            while AL_Ops.tell() < t:
-                Ops = pickle.load(AL_Ops)
-                if Ops.cod == prod.cod and (Ops.bruto-Ops.tara)<min:
-                    min = Ops.bruto-Ops.tara
-                    patente_min = Ops.patente.strip()
-            print(prod.nombre.strip() + '\t' + patente_min)
+            try:
+                while AL_Ops.tell() < t:
+                    Ops = pickle.load(AL_Ops)
+                    if Ops.cod == prod.cod and (Ops.bruto-Ops.tara) < min:
+                        min = Ops.bruto-Ops.tara
+                        patente_min = Ops.patente.strip()
+                print(prod.nombre.strip() + '\t' + patente_min)
+            except:
+                print(prod.nombre.strip() + '\t' + patente_min)
     os.system("pause")
 
 
@@ -1088,9 +1105,13 @@ while seleccion != "0":
             menu_administraciones()
 
         case "2":
+            AL_Cupos.seek(0)
             cupos = pickle.load(AL_Cupos)
+            print(cupos)
             cupos = entrega_cupos(cupos)
+            print(cupos)
             pickle.dump(cupos, AL_Cupos)
+            AL_Cupos.flush()
 
         case "3":
             menu_recepcion()
